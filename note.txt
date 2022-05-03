@@ -2,3 +2,10 @@ targets
 	- website 1
 	- website 2
 	- website 3
+
+genreal notes
+	- What data analysis can we do? We can provide new value by calculating trends or w.e
+	and making a curated list or something from it.
+	
+	- realm deck. Change the meta channel but keep enjoying all the same content. this is an idea
+	for expanding and connecting these instances. 
