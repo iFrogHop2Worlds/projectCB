@@ -8,7 +8,7 @@ try {
         console.log(`recieved data from main`)
         console.log(message)
         try {
-            BeautyCtrl.apiUpdateAllProduct()
+            BeautyCtrl.apiUpdateAllProduct(message)
         } catch (error) {
             console.log(error)
         }

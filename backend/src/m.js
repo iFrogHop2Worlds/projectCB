@@ -16,11 +16,19 @@ const fetchData = async (url) => {
     console.log("creepy crawlin yo");
     return response;
 }
-
+// need to conditionally check if an array has 2 or 3 elements
+// and then update my object appropiately
 const formatStr = (arr, dataObj) => {
     let reggie = /[^A-Z]*(^|D+)/;
     let newArr = arr[0].split(reggie);
-    return dataObj[newArr[0]] = newArr[1];
+    let key = newArr[0].split(' ')
+
+    console.log(key)
+    dataObj[key[0] + ' ' + key[1]] = key[2]
+
+    // .map(v => v.replace(/[0-9]+/,' '));
+    //newArr[0].slice(0, numstart) + ' '
+    // let numstart = newArr.indexOf(/[0-9]/) 
 }
 
 const mainFunc = async () => {
