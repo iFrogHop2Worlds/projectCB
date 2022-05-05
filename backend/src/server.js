@@ -1,8 +1,8 @@
-import express from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
-import morgan from "morgan";
-import beautyData from "./api/beautyData.route"
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const morgan = require("morgan");
+const beautyData = require("./api/beautyData.route");
 
 
 const app = express();
@@ -19,4 +19,4 @@ app.use("/api/v1", beautyData)
 // app.use("/", express.static("build"))
 app.use("*", (req, res) => res.status(404).json({ error: "not found" }))
 
-export default app;
+module.exports = app;

@@ -51,5 +51,5 @@
     "babel-jest": "^28.0.2",
     "concurrently": "^3.5.1"
   },
-  "type": "module"
+  "type": "commonjs"
 }

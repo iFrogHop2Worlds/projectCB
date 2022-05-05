@@ -1,10 +1,8 @@
 // import { ObjectId } from "bson";
 
-// const DEFAULT_SEARCH = [["ratings.viewr.numReviews", -1]]
-
-export let beauty
+let beauty
 let MetaDeck
-export default class BeautyDAO {
+class BeautyDAO {
     
     static async injectDB(conn) {
         if(beauty) return;
@@ -16,39 +14,56 @@ export default class BeautyDAO {
             console.error(`unable to establish a connection handle in beautyDAO: ${e}`)
         }
     }
-
-    /*
-    for some reason this is not behaving as expected.. Moved logic into the controller. 
-    the idea is teh controller calls these functions. But im pulling my db injection above
-    into controller and handling in there for now.
+    /** 
+     * this function is currently just grabbing all data out of the 
+     * beauty collection
     */
+    static async getAllBeauty() {
+        try {
+            let ans = await beauty
+            .find({})
+            .project({product: 1, _id: 0})
+            .toArray();
+            return ans
+        } catch (err) {
+            console.log(err);
+        }
+    }
+ 
+    static async post2Beauty(something) {
+        // console.log(something)
+        let ans = something
+        try {
+            return await beauty.insertOne(ans); // make this dynamic.
+        } catch (err) {
+            console.log(err);
+        }
+    }
 
-    // static async getAll() {
-    //     let cursor
-    //     try {
-    //         cursor = await beauty.find({}).project({product: 1, _id: 0}).toArray()   
-    //     return cursor
-    //     } catch (e) {
-    //         console.error(`Unable to issue find command, ${e}`)
-    //         return { results: []}
-    //     }
-    // }
+    static async updateAllBeauty(updates) {
+        // requires a specific document, not an upsert
+        try {
+            await beauty.update(
+                {},
+                {$set: updates},
+            )
+        } catch (err) {
+           console.log(err)
+        }
+    }
 
-    // static async postSome() {
-    //     try {
-    //         await beauty.insertOne({product: "Fire"})
-        
-    //     } catch (e) {
-    //         console.error(`Unable to issue find command, ${e}`)
-    //         return { results: []}
-    //     }
-    // }
+    static async apiDeleteProduct(req, res, next){
+        try{
+            await beauty.deleteOne({product: "Fire"})
+        } catch (e){
+            res.json({message: "still working on it"})
+        }
+    }
+    // 2dos
+    // delete property function
+    // update single item
 
-    // static async deleteSomething() {
-    //     try {
-    //         await beauty.deleteOne({product: "Fang Dress"})
-    //     } catch (error) {
-            
-    //     }
-    // }
+
+
 }
+module.exports = BeautyDAO

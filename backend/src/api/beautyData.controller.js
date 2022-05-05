@@ -1,50 +1,43 @@
-import {BeautyDAO, beauty} from "../dao/beautyDAO";
-//NOTE: I am pulling the db/collection instance via the beauty variable ^
-// I am only doing this because I was having trouble with 
-// DAO pattern. Will refactor this l8r
-// Is there much benefit from extrapolating the fnction? perhaps so when 
-// things get more complicated. 
-export default class BeautyController {
+const BeautyDAO = require("../dao/beautyDAO");
+
+class BeautyController {
 
     static async apiGetAllProduct(req, res, next) {
-        let ans = await beauty
-            .find({})
-            //.project({product: 1, _id: 0})
-            .toArray();
+        let result
         try {
-            res.json(ans)
+            result = await BeautyDAO.getAllBeauty()
+            res.json(result)
         } catch (err) {
             res.status(500).json({error: err});
         }
     }
 
-    static async apiPostProduct(req, res, next) {
+    static async apiPostSomething(req, res, next) {
+        let result 
+        req ? result=req : console.log("Data did not persist properly")
         try {
-            await beauty.insertOne({product: "Fire"}); // make this dynamic.
-            res.json({message: "your post was successful"})
+            await BeautyDAO.post2Beauty(result); // make this dynamic.
         } catch (err) {
-            res.status(500).json({error: err});
+            console.log(err);
         }
     }
-
+ 
     static async apiUpdateAllProduct(req, res, next) {
         // requires a specific document, not an upsert
         try {
-            await beauty.update(
-                {},
-                {$set: {seller: "Billl"}},
-            )
+            await BeautyDAO.updateAllBeauty(req)
         } catch (err) {
             res.status(500).json({error:err})
         }
     }
 
     static async apiDeleteProduct(req, res, next){
-        try{
-            await beauty.deleteOne({product: "Fire"})
-        } catch (e){
-            res.json({message: "still working on it"})
-        }
+        // try{
+        //     await beauty.deleteOne({product: "Fire"})
+        // } catch (e){
+        //     res.json({message: "still working on it"})
+        // }
     }
 
 }
+module.exports = BeautyController

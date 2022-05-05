@@ -1,15 +1,15 @@
-import { Router } from "express";
-import BeautyCtrl from "./beautyData.controller";
+const { Router } = require("express");
+const BeautyController = require("./beautyData.controller.js");
 
 const router = new Router();
 
-router.route("/").get(BeautyCtrl.apiGetAllProduct) 
-router.route("/addItem").post(BeautyCtrl.apiPostProduct)
-router.route("/update").put(BeautyCtrl.apiUpdateAllProduct)
-router.route("/delete").delete(BeautyCtrl.apiDeleteProduct)
+router.route("/").get(BeautyController.apiGetAllProduct) 
+router.route("/addItem").post(BeautyController.apiPostSomething)
+router.route("/update").put(BeautyController.apiUpdateAllProduct)
+router.route("/delete").delete(BeautyController.apiDeleteProduct)
 
 // router.route("/search").get(BeautyCtrl.apiSearchData);
 // router.route("/product-type").get(BeautyCtrl.apiGetProdTypeData);
 // router.route("/id/:id").get(BeautyCtrl.apiGetProdById);
 
-export default router;
+module.exports = router;

@@ -1,5 +1,5 @@
 // testing out workers
-const { Worker, isMainThread, parentPort }  = require('worker_threads'); //using this syntax because outside of module?
+import { Worker, isMainThread, parentPort }  from 'worker_threads'; //using this syntax because outside of module?
 
 if(isMainThread) {
     const worker = new Worker("./hello.js");

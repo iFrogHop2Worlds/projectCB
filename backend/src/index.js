@@ -1,7 +1,7 @@
-import app from "./server";
-import { MongoClient } from "mongodb";
-import BeautyDAO from  "./dao/beautyDAO"
-
+const app = require("./server");
+const { MongoClient } = require("mongodb");
+const BeautyDAO = require("./dao/beautyDAO")
+const DAO = require("./dbworker");
 const port = process.env.PORT || 8181;
 
 MongoClient.connect(
@@ -21,6 +21,7 @@ MongoClient.connect(
     .then(async client => {
 
         await BeautyDAO.injectDB(client);
+        //await DAO.injectDB(client);
 
         app.listen(port, () => {
             console.log(`Server is running on port: ${port}`);
