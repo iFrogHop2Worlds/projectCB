@@ -1,16 +1,38 @@
-planning document for the design of the aggregation pipeline. Which will reshape our data coming in from 
-the crawler into normalized objects to use within our app.
+save components of objects in different part objects. 
+
+EXAMPLE:
+AllureTrends collection		-we will use different collections for each category
+[
+	images
+	[
+	i1: 3fsse,
+	i2: 3fsse
+	i3: 3fsse
+	]
+	titles
+	[
+	t1: 3fsse,
+	t2: 3fsse
+	t3: 3fsse
+	]
+	content
+	[
+	c1: ththrthw54,
+	c2: hwrhwrthwrtrth
+	c3: hertherther
+	]
+]
 
 
-next: Mapping out and organizing how data is goign to come into the pipeline and how we want it to come out.
-we want to create the following three objects. Articles, Videos, Podcast. We will determine what the spider 
-is getting for each and how each needs to be represented.
+Now we can run it through aggregation pipelines and format however we want
 
-Articles/Blog Post
-    [spider]:: Headers/Titles, text/paragraphs, images.
-    [db_Object]:: {title, content:{headings,paragraphs, images}, source}
+{match i1} -> {project i1}
+{match t1} -> {project t1}
+{match c1} -> {project c1}
 
-Videos
+would output
 
+<img>
+<title>
+<data>
 
-Podcast/Audio
