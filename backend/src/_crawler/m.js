@@ -19,9 +19,6 @@ const fetchData = async (url) => {
     return response;
 }
 
-// just playing around with formating crawled data
-// you can shape it however you want, this is not optimal
-// im going to keep this + currency info incase maybe we use it? good example regardless
 const formatCurrencyData = (arr, dataObj) => {
     let key = arr[0].split(' ')
     let symbol
@@ -37,6 +34,39 @@ const formatCurrencyData = (arr, dataObj) => {
         dataObj[key[0] + '_' + symbol[0]] = value[value.length - 1]
     }
 }
+
+const formatAllureTrending = (newStr, dataObj) => {
+    newStr = newStr.filter(string => {
+        if( 
+            string != '' && 
+            string != "</h3>" &&
+            string != '<h3 class="SummaryItemHedBase-dZmlME fwPbgz summary-item__hed" data-testid="SummaryItemHed">' &&
+            string != "<em>" &&
+            string != "</em>"
+            ){
+         return true
+        }
+    });
+    let i
+    for(i = 0; i < newStr.length-1; i++){
+        if(newStr[i].endsWith(' ')){
+         newStr[i] += newStr[i+1]
+         newStr[i+1] = ''
+        } 
+        if(/^\s/.test(newStr[i+2])){
+         newStr[i] += newStr[i+2]
+         newStr[i+2] = ''
+        }
+    }
+    newStr = newStr.filter(string => {
+     if( string != '' ) return true   
+    });   
+    for(i = 0; i < newStr.length; i++){
+        dataObj["title_" + i] = newStr[i]
+    }
+   
+}
+
 // we set our target urls and call our fetch function to retrieve our data.
 // finally we format and send the data to a worker thread which will handle.
 // calling the db. It maybe we move more work to the workers overtime
@@ -72,50 +102,25 @@ let allureTrendDataObj = new Object();
 allure_trends_articles.each(function() {
    // let article_image = 
    let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
-   let test = article_title.split('>')
    let newStr = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
-   newStr = newStr.filter(string => {
-       if( 
-           string != '' && 
-           string != "</h3>" &&
-           string != '<h3 class="SummaryItemHedBase-dZmlME fwPbgz summary-item__hed" data-testid="SummaryItemHed">' &&
-           string != "<em>" &&
-           string != "</em>"
-           ){
-        return true
-       }
-   });
-   let i
-   for(i = 0; i < newStr.length-1; i++){
-       if(newStr[i].endsWith(' ')){
-        newStr[i] += newStr[i+1]
-        newStr[i+1] = ''
-       } 
-       if(/^\s/.test(newStr[i+2])){
-        newStr[i] += newStr[i+2]
-        newStr[i+2] = ''
-       }
-   }
-   newStr = newStr.filter(string => {
-    if( string != '' ) return true   
-});
-   console.log(newStr)
+   formatAllureTrending(newStr, allureTrendDataObj)
+   console.log(allureTrendDataObj)
 });
 
 ////////////////ALLURE-TRENDS///////////////
 
-    // am I going to pass these all back as an array??
-    // ill have to manually use index values which is fine
-    // but is there better way???
-    return iban_dataObj;
+
+    return {iban_dataObj, allureTrendDataObj};
 }
   
 mainFunc().then(res => {
     // start worker
     const worker = new Worker(workDir);
+
     console.log("sending crawled data to worker");
     // send formated data to worker
-    worker.postMessage(res);
+    worker.postMessage(res.allureTrendDataObj);
+
     // listen to message from worker thread
     worker.on('message', (msg) => {
         console.log(msg)
