@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "subworkers": "^1.0.1"
+  }
+}

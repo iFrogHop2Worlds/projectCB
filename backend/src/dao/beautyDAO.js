@@ -29,23 +29,20 @@ class BeautyDAO {
             console.log(err);
         }
     }
- 
+          
     static async post2Beauty(something) {
-        // console.log(something)
-        let ans = something
         try {
-            return await beauty.insertOne(ans); // make this dynamic.
+            return await beauty.insert(something.body.data); 
         } catch (err) {
             console.log(err);
         }
     }
-
+  
     static async updateAllBeauty(updates) {
-        // requires a specific document, not an upsert
         try {
             await beauty.update(
                 {},
-                {$set: updates},
+                {$set: {currency: updates}}, //just testing
             )
         } catch (err) {
            console.log(err)
