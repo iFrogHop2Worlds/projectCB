@@ -3,9 +3,7 @@ const cheerio = require('cheerio');
 const {Worker} = require('node:worker_threads');
 
 const workDir = __dirname+"/dbworker"
-// I think for over all simplicity it will be better to 
-// write a new fetch function for each source
-// since3 will have to handle eache differently anyways
+
 const fetchData = async (url) => {
     let response = await axios(url)
         .catch(e => {
@@ -35,7 +33,8 @@ const formatCurrencyData = (arr, dataObj) => {
     }
 }
 
-const formatAllureTrending = (newStr, dataObj) => {
+const formatAllureTrending = (newStr, images, dataObj) => {
+
     newStr = newStr.filter(string => {
         if( 
             string != '' && 
@@ -47,6 +46,7 @@ const formatAllureTrending = (newStr, dataObj) => {
          return true
         }
     });
+
     let i
     for(i = 0; i < newStr.length-1; i++){
         if(newStr[i].endsWith(' ')){
@@ -58,18 +58,16 @@ const formatAllureTrending = (newStr, dataObj) => {
          newStr[i+2] = ''
         }
     }
+
     newStr = newStr.filter(string => {
      if( string != '' ) return true   
     });   
+
     for(i = 0; i < newStr.length; i++){
-        dataObj["title_" + i] = newStr[i]
+        dataObj[i] = [newStr[i], images[i]]
     }
-   
 }
 
-// we set our target urls and call our fetch function to retrieve our data.
-// finally we format and send the data to a worker thread which will handle.
-// calling the db. It maybe we move more work to the workers overtime
 const mainFunc = async () => {
     const iban_url = "https://www.iban.com/exchange-rates";
     const allure_trends_url = "https://www.allure.com/topic/trends"
@@ -77,7 +75,7 @@ const mainFunc = async () => {
     let iban_res = await fetchData(iban_url);
 
 ////////////////IBAN////////////////////////
-     if(!iban_res.data){     
+    if(!iban_res.data){     
       console.log("Invalid data Obj");  //validate we got a correct response.
       return; 
     }
@@ -95,18 +93,29 @@ const mainFunc = async () => {
 ////////////////IBAN////////////////////////
 
 ////////////////ALLURE-TRENDS///////////////
+if(!allure_trends.data){     
+    console.log("Invalid data Obj");  
+    return; 
+}
 const allure_html = allure_trends.data;
 const $allureTrends = cheerio.load(allure_html);
 const allure_trends_articles = $allureTrends(".summary-list__items")
 let allureTrendDataObj = new Object();
-allure_trends_articles.each(function() {
-   // let article_image = 
-   let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
-   let newStr = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
-   formatAllureTrending(newStr, allureTrendDataObj)
-   console.log(allureTrendDataObj)
-});
 
+allure_trends_articles.each(function() {
+    const imageLinks = $allureTrends(this)
+    .find('.SummaryItemWrapper-gdEuvf')
+    .toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+        if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
+    })
+    //arr.push(imageAttr[7])    /^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/
+    let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
+    let title = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
+    formatAllureTrending(title, imageLinks,  allureTrendDataObj)
+    console.log(imageLinks)
+  // console.log(allureTrendDataObj)
+});
+  
 ////////////////ALLURE-TRENDS///////////////
 
 
