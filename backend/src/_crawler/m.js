@@ -36,7 +36,7 @@ const formatCurrencyData = (arr, dataObj) => {
 const formatAllureTrending = (newStr, images, dataObj) => {
 
     newStr = newStr.filter(string => {
-        if( 
+        if(  // prob refactor to use a match 
             string != '' && 
             string != "</h3>" &&
             string != '<h3 class="SummaryItemHedBase-dZmlME fwPbgz summary-item__hed" data-testid="SummaryItemHed">' &&
@@ -62,64 +62,62 @@ const formatAllureTrending = (newStr, images, dataObj) => {
     newStr = newStr.filter(string => {
      if( string != '' ) return true   
     });   
-
     for(i = 0; i < newStr.length; i++){
-        dataObj[i] = [newStr[i], images[i]]
+        dataObj.push({title: newStr[i], image_url: images[i-1]})
     }
 }
 
 const mainFunc = async () => {
-    const iban_url = "https://www.iban.com/exchange-rates";
-    const allure_trends_url = "https://www.allure.com/topic/trends"
-    let allure_trends = await fetchData(allure_trends_url)
-    let iban_res = await fetchData(iban_url);
-
 ////////////////IBAN////////////////////////
+const iban_url = "https://www.iban.com/exchange-rates";
+let iban_res = await fetchData(iban_url);
     if(!iban_res.data){     
       console.log("Invalid data Obj");  //validate we got a correct response.
       return; 
     }
     const iban_html = iban_res.data;  
-    const $iban = cheerio.load(iban_html); // mount html page to the root element
+    const $iban = cheerio.load(iban_html); 
     const statsTable = $iban('.table.table-bordered.table-hover.downloads > tbody > tr');
-    //loop through all table rows and get table data
     let iban_dataObj = new Object();
     statsTable.each(function() {
-        let title = $iban(this).find('td').text(); // get the text in all the td elements
-        let newStr = title.split(/\t/); // convert text (string) into an array
-        newStr.shift(); // strip off empty array element at index 0
-        formatCurrencyData(newStr, iban_dataObj); // format array string and store in an object
+        let title = $iban(this).find('td').text(); 
+        let newStr = title.split(/\t/); 
+        newStr.shift(); 
+        formatCurrencyData(newStr, iban_dataObj); 
     });
 ////////////////IBAN////////////////////////
 
 ////////////////ALLURE-TRENDS///////////////
-if(!allure_trends.data){     
+let allureTrendDataObj = []//new Object();
+for(let i = 0; i < 5; i++){
+    const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}`//there are 5 pages i need to support ?page=1
+    let allure_trends = await fetchData(allure_trends_url)
+
+    if(!allure_trends.data){     
     console.log("Invalid data Obj");  
     return; 
-}
-const allure_html = allure_trends.data;
-const $allureTrends = cheerio.load(allure_html);
-const allure_trends_articles = $allureTrends(".summary-list__items")
-let allureTrendDataObj = new Object();
-
-allure_trends_articles.each(function() {
-    const imageLinks = $allureTrends(this)
-    .find('.SummaryItemWrapper-gdEuvf')
-    .toString().split(/(https[^\s]+\.jpg)/).filter(string => {
-        if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
-    })
-    //arr.push(imageAttr[7])    /^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/
+    }
+    const allure_html = allure_trends.data;
+    const $allureTrends = cheerio.load(allure_html);
+    const allure_trends_articles = $allureTrends(".summary-list__items")
+    
+    allure_trends_articles.each(function() {
+        const imageLinks = $allureTrends(this)
+        .find('.SummaryItemWrapper-gdEuvf')
+        .toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+            if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
+        })
     let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
     let title = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
     formatAllureTrending(title, imageLinks,  allureTrendDataObj)
-    console.log(imageLinks)
-  // console.log(allureTrendDataObj)
-});
-  
+    //console.log(imageLinks)
+    console.log(allureTrendDataObj)
+    });
+}
 ////////////////ALLURE-TRENDS///////////////
 
 
-    return {iban_dataObj, allureTrendDataObj};
+    return allureTrendDataObj;
 }
   
 mainFunc().then(res => {
@@ -128,7 +126,7 @@ mainFunc().then(res => {
 
     console.log("sending crawled data to worker");
     // send formated data to worker
-    worker.postMessage(res.allureTrendDataObj);
+    worker.postMessage(res);
 
     // listen to message from worker thread
     worker.on('message', (msg) => {
