@@ -1,5 +1,6 @@
 const axios = require('axios').default;
 const cheerio = require('cheerio');
+const { attr } = require('cheerio/lib/api/attributes');
 const {Worker} = require('node:worker_threads');
 
 const workDir = __dirname+"/dbworker"
@@ -33,7 +34,7 @@ const formatCurrencyData = (arr, dataObj) => {
     }
 }
 
-const formatAllureTrending = (newStr, images, dataObj) => {
+const formatAllureTrending = (newStr, images, author, description, articleLink, dataObj) => {
 
     newStr = newStr.filter(string => {
         if(  // prob refactor to use a match 
@@ -63,7 +64,14 @@ const formatAllureTrending = (newStr, images, dataObj) => {
      if( string != '' ) return true   
     });   
     for(i = 0; i < newStr.length; i++){
-        dataObj.push({title: newStr[i], image_url: images[i-1]})
+        dataObj.push(
+            {
+                title: newStr[i], 
+                image_url: images[i-1],
+                author: author[i],
+                description: description[i],
+                articleLink: "https://www.allure.com" + articleLink[i]
+            })
     }
 }
 
@@ -88,6 +96,11 @@ let iban_res = await fetchData(iban_url);
 ////////////////IBAN////////////////////////
 
 ////////////////ALLURE-TRENDS///////////////
+/**
+ * here we are grabbing all of the trending topics
+ * from allure and formatting the data to be consumed directly 
+ * and ran through data pipeline for analysis data etc
+ */
 let allureTrendDataObj = []//new Object();
 for(let i = 0; i < 5; i++){
     const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}`//there are 5 pages i need to support ?page=1
@@ -102,22 +115,40 @@ for(let i = 0; i < 5; i++){
     const allure_trends_articles = $allureTrends(".summary-list__items")
     
     allure_trends_articles.each(function() {
-        const imageLinks = $allureTrends(this)
-        .find('.SummaryItemWrapper-gdEuvf')
-        .toString().split(/(https[^\s]+\.jpg)/).filter(string => {
-            if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
+        // base link https://www.allure.com/story/ + href we extract
+        let articleLink =  $allureTrends(this).find('a').toString().split(/(?<=\href=")(.*?)(?=\")/).filter(string => {
+            if(string.match(/^((?![<>]).)*$/)) return true
         })
-    let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
-    let title = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
-    formatAllureTrending(title, imageLinks,  allureTrendDataObj)
-    //console.log(imageLinks)
-    console.log(allureTrendDataObj)
+          //console.log(`https://www.allure.com${articleLink}`) 
+        let description = $allureTrends(this).find('.BaseWrap-sc-TURhJ')
+        .toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+            if(string != '' && string != 'By ' && string.match(/^((?![<>]).)*$/)) return true
+        })    
+
+        let author = $allureTrends(this)
+            .find('p')
+            .toString().split('</span>').filter(string => {
+                if(string != '' && string.match(/^((?![<>]).)*$/)) return true
+            })
+
+        const imageLinks = $allureTrends(this)
+            .find('.SummaryItemWrapper-gdEuvf')
+            .toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+                if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
+            })
+
+        let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
+        let title = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
+
+        formatAllureTrending(title, imageLinks, author, description, articleLink, allureTrendDataObj)
+
+        //console.log(allureTrendDataObj)
     });
 }
 ////////////////ALLURE-TRENDS///////////////
 
 
-    return allureTrendDataObj;
+    return {allureTrendDataObj, iban_dataObj};
 }
   
 mainFunc().then(res => {
@@ -126,7 +157,7 @@ mainFunc().then(res => {
 
     console.log("sending crawled data to worker");
     // send formated data to worker
-    worker.postMessage(res);
+    worker.postMessage(res.allureTrendDataObj);
 
     // listen to message from worker thread
     worker.on('message', (msg) => {

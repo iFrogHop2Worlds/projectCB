@@ -7,7 +7,7 @@ try {
     parentPort.once("message", (message) => {
         console.log(`recieved data from main`)
         console.log(message) 
-    //     axios.post('http://localhost:5000/api/v1/addItem', {     // commented out so I dont keep posting data
+    //     axios.post('http://localhost:5000/api/v1/addItem', {     // works but want to use bulkwrite
     //         method: 'post',
     //         data: message
     // })
