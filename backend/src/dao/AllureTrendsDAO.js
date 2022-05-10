@@ -1,14 +1,16 @@
 // import { ObjectId } from "bson";
 
-let beauty
+let AllureTrendsOverview
+let AllureTrendsArticles
 let MetaDeck
 class BeautyDAO {
     
     static async injectDB(conn) {
-        if(beauty) return;
+        if(AllureTrendsOverview) return;
         try{
             MetaDeck = await conn.db("MetaDeck");
-            beauty = await conn.db("MetaDeck").collection("beauty");
+            AllureTrendsOverview = await conn.db("MetaDeck").collection("AllureTrendsOverview");
+            AllureTrendsArticles = await conn.db("MetaDeck").collection("AllureTrendArticles");
             console.log("connection to db established")
         } catch (e) {
             console.error(`unable to establish a connection handle in beautyDAO: ${e}`)
@@ -20,7 +22,7 @@ class BeautyDAO {
     */
     static async getAllBeauty() {
         try {
-            let ans = await beauty
+            let ans = await AllureTrendsOverview
             .find({})
             .project({product: 1, _id: 0})
             .toArray();
@@ -29,10 +31,10 @@ class BeautyDAO {
             console.log(err);
         }
     }
-          
-    static async post2Beauty(something) {
+           
+    static async insertAllureTrends(something) {
         try {
-            return await beauty.insert(something.body.data); 
+            return await AllureTrendsOverview.insertMany(something.body.data); 
         } catch (err) {
             console.log(err);
         }
@@ -40,7 +42,7 @@ class BeautyDAO {
   
     static async updateAllBeauty(updates) {
         try {
-            await beauty.update(
+            await AllureTrendsOverview.update(
                 {},
                 {$set: {currency: updates}}, //just testing
             )
@@ -51,7 +53,7 @@ class BeautyDAO {
 
     static async apiDeleteProduct(req, res, next){
         try{
-            await beauty.deleteOne({product: "Fire"})
+            await AllureTrendsOverview.deleteOne({product: "Fire"})
         } catch (e){
             res.json({message: "still working on it"})
         }

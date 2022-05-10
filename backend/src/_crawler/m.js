@@ -34,39 +34,24 @@ const formatCurrencyData = (arr, dataObj) => {
     }
 }
 
-const formatAllureTrending = (newStr, images, author, description, articleLink, dataObj) => {
-
-    newStr = newStr.filter(string => {
-        if(  // prob refactor to use a match 
-            string != '' && 
-            string != "</h3>" &&
-            string != '<h3 class="SummaryItemHedBase-dZmlME fwPbgz summary-item__hed" data-testid="SummaryItemHed">' &&
-            string != "<em>" &&
-            string != "</em>"
-            ){
-         return true
-        }
-    });
+const formatAllureTrending = (articleTitles, images, author, description, articleLink, dataObj) => {
 
     let i
-    for(i = 0; i < newStr.length-1; i++){
-        if(newStr[i].endsWith(' ')){
-         newStr[i] += newStr[i+1]
-         newStr[i+1] = ''
+    for(i = 0; i < articleTitles.length-1; i++){
+        if(articleTitles[i].endsWith(' ')){
+         articleTitles[i] += articleTitles[i+1]
+         articleTitles[i+1] = ''
         } 
-        if(/^\s/.test(newStr[i+2])){
-         newStr[i] += newStr[i+2]
-         newStr[i+2] = ''
+        if(/^\s/.test(articleTitles[i+2])){
+         articleTitles[i] += articleTitles[i+2]
+         articleTitles[i+2] = ''
         }
     }
 
-    newStr = newStr.filter(string => {
-     if( string != '' ) return true   
-    });   
-    for(i = 0; i < newStr.length; i++){
+    for(i = 0; i < articleTitles.length; i++){
         dataObj.push(
             {
-                title: newStr[i], 
+                title: articleTitles[i], 
                 description: description[i],
                 author: author[i],
                 image_url: images[i],
@@ -102,7 +87,7 @@ let iban_res = await fetchData(iban_url);
  * and ran through data pipeline for analysis data etc
  */
 let allureTrendDataObj = [] // an array of objects we insert into the db
-for(let i = 0; i < 3; i++){
+for(let i = 0; i < 4; i++){
     const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}` 
     let allure_trends = await fetchData(allure_trends_url)
 
@@ -112,38 +97,66 @@ for(let i = 0; i < 3; i++){
     }
     const allure_html = allure_trends.data;
     const $allureTrends = cheerio.load(allure_html);
-    const allure_trends_articles = $allureTrends(".summary-list__items")
+    const allure_trends_articles = $allureTrends(".summary-list__items");
     
     allure_trends_articles.each(function() {
-        // base link https://www.allure.com/story/ + href we extract
+        // links to articles
         let articleLink =  $allureTrends(this).find('a').toString().split(/(?<=\href=")(.*?)(?=\")/).filter(string => {
             if(string.match(/^((?![<>]).)*$/)) return true  //2do remove duplicate entries
-        })
+        });
         articleLink = [...new Set(articleLink)]; // removing duplicate entries
-          console.log(articleLink) 
-        let description = $allureTrends(this).find('.BaseWrap-sc-TURhJ')
-        .toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+        // short descriptions
+        let description = $allureTrends(this).find('.BaseWrap-sc-TURhJ').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
             if(string != '' && string != 'By ' && string.match(/^((?![<>]).)*$/)) return true
-        })    
-
-        let author = $allureTrends(this)
-            .find('p')
-            .toString().split('</span>').filter(string => {
+        });    
+        // author names
+        let author = $allureTrends(this).find('p').toString().split('</span>').filter(string => {
                 if(string != '' && string.match(/^((?![<>]).)*$/)) return true
-            })
-
-        const imageLinks = $allureTrends(this)
-            .find('.SummaryItemWrapper-gdEuvf')
-            .toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+        });
+        // images
+        let imageLinks = $allureTrends(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                 if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
-            })
-
-        let article_title = $allureTrends(this).find('h3').toString(); 
-        let title = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
-
-        formatAllureTrending(title, imageLinks, author, description, articleLink, allureTrendDataObj)
+        });
+        // titles    
+        let articleTitles = $allureTrends(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+            if(string != '' && string.match(/^((?![<>]).)*$/)) return true
+        }); 
+           // console.log(articleTitles)
+        formatAllureTrending(articleTitles, imageLinks, author, description, articleLink, allureTrendDataObj);
     });
 }
+/**
+ * Now that we have all the trending articles we will 
+ * use this information to crawl each articles page and grab that information
+ * Use titles to cross reference??
+ */
+let AllureTrendingArticles = [] // the articles data we will return
+let article_url
+let allureArticles 
+let allure_html
+let $allureArticle
+
+let text = []
+for(let i = 0; i < allureTrendDataObj.length; i++){
+    try {
+    article_url = allureTrendDataObj[i].articleLink;
+    allureArticles = await fetchData(article_url);
+    allure_html = allureArticles.data;
+    $allureArticle = cheerio.load(allure_html);
+    allureArticles = $allureArticle('.article')
+    allureArticles.each(function(){
+        text = $allureArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+            if(string != '' && string.match(/^((?![<>]).)*$/)) return true
+        }); 
+        console.log(text)
+    })
+        
+    } catch (error) {
+        console.log(error)
+    }
+    
+}
+console.log(text)
 ////////////////ALLURE-TRENDS///////////////
 
 

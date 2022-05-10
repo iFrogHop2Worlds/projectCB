@@ -1,4 +1,4 @@
-const BeautyDAO = require("../dao/beautyDAO");
+const BeautyDAO = require("../dao/AllureTrendsDAO");
 
 class BeautyController {
 
@@ -12,11 +12,11 @@ class BeautyController {
         }
     }
 
-    static async apiPostSomething(req, res, next) {
+    static async apiInsertAllureTrends(req, res, next) {
         let result 
         req ? result=req : console.log("Data did not persist properly")
         try {
-            await BeautyDAO.post2Beauty(result); // make this dynamic.
+            await BeautyDAO.insertAllureTrends(result); // make this dynamic.
         } catch (err) {
             console.log(err);
         }

@@ -1,6 +1,6 @@
 const app = require("./server");
 const { MongoClient } = require("mongodb");
-const BeautyDAO = require("./dao/beautyDAO")
+const BeautyDAO = require("./dao/AllureTrendsDAO")
 const crawler = require('./_crawler/m')
 const port = process.env.PORT || 8181;
 

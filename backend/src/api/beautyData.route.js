@@ -4,7 +4,7 @@ const BeautyController = require("./beautyData.controller.js");
 const router = new Router();
 
 router.route("/").get(BeautyController.apiGetAllProduct) 
-router.route("/addItem").post(BeautyController.apiPostSomething)
+router.route("/addItem").post(BeautyController.apiInsertAllureTrends)
 router.route("/update").put(BeautyController.apiUpdateAllProduct)
 router.route("/delete").delete(BeautyController.apiDeleteProduct)
 

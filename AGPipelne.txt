@@ -1,47 +1,19 @@
-save components of objects in different part objects. 
 
-EXAMPLE:
-AllureTrends collection		-we will use different collections for each category
-[
-	images [
-	i1: 3fsse
-	i2: 3fsse
-	i3: 3fsse
-	]
-	titles [
-	t1: 3fsse
-	t2: 3fsse
-	t3: 3fsse
-	]
-	content [
-	c1: ththrthw54
-	c2: hwrhwrthwrtrth
-	c3: hertherther
-	]
-	links [
-	l1: <links>
-	l2: <links>
-	l3: <links>
-	]
-	date?[...]
-	author[...]
-]
+article list objects {
+	<title>
+	<desc>
+	<author>
+	<imglink>
+	<link>
+}
+
+article objects {
+	<title> ? might need this to do cross aggregation
+	<author> ? do I need to scrape this again or just grab through aggregation
+	<imglinks> []	
+	<text>
+}
 
 
-Now we can run it through aggregation pipelines and format however we want
 
-{match i1} -> {project i1}
-{match t1} -> {project t1}
-{match c1} -> {project c1}
-{match l1} -> {project l1}
-{match d1} -> {project d1}
-{match auth1} -> {project auth1}
-would output
-
-<img>
-<title>
-<content>
-<date>
-<author>
-<link>
 
