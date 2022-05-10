@@ -67,9 +67,9 @@ const formatAllureTrending = (newStr, images, author, description, articleLink, 
         dataObj.push(
             {
                 title: newStr[i], 
-                image_url: images[i-1],
-                author: author[i],
                 description: description[i],
+                author: author[i],
+                image_url: images[i],
                 articleLink: "https://www.allure.com" + articleLink[i]
             })
     }
@@ -101,9 +101,9 @@ let iban_res = await fetchData(iban_url);
  * from allure and formatting the data to be consumed directly 
  * and ran through data pipeline for analysis data etc
  */
-let allureTrendDataObj = []//new Object();
-for(let i = 0; i < 5; i++){
-    const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}`//there are 5 pages i need to support ?page=1
+let allureTrendDataObj = [] // an array of objects we insert into the db
+for(let i = 0; i < 3; i++){
+    const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}` 
     let allure_trends = await fetchData(allure_trends_url)
 
     if(!allure_trends.data){     
@@ -117,9 +117,10 @@ for(let i = 0; i < 5; i++){
     allure_trends_articles.each(function() {
         // base link https://www.allure.com/story/ + href we extract
         let articleLink =  $allureTrends(this).find('a').toString().split(/(?<=\href=")(.*?)(?=\")/).filter(string => {
-            if(string.match(/^((?![<>]).)*$/)) return true
+            if(string.match(/^((?![<>]).)*$/)) return true  //2do remove duplicate entries
         })
-          //console.log(`https://www.allure.com${articleLink}`) 
+        articleLink = [...new Set(articleLink)]; // removing duplicate entries
+          console.log(articleLink) 
         let description = $allureTrends(this).find('.BaseWrap-sc-TURhJ')
         .toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
             if(string != '' && string != 'By ' && string.match(/^((?![<>]).)*$/)) return true
@@ -137,12 +138,10 @@ for(let i = 0; i < 5; i++){
                 if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
             })
 
-        let article_title = $allureTrends(this).find('h3').toString(); // .SummaryItemHedBase-dZmlME
+        let article_title = $allureTrends(this).find('h3').toString(); 
         let title = article_title.split(/(?<=\>)(.*?)(?=\<)/); 
 
         formatAllureTrending(title, imageLinks, author, description, articleLink, allureTrendDataObj)
-
-        //console.log(allureTrendDataObj)
     });
 }
 ////////////////ALLURE-TRENDS///////////////
@@ -163,4 +162,4 @@ mainFunc().then(res => {
     worker.on('message', (msg) => {
         console.log(msg)
     });
-});
+})  // thinking of chaining my individual article crawl here. as it wil be dependent on the first overview crawl to extract the article links
