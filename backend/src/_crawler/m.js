@@ -4,6 +4,7 @@ const { attr } = require('cheerio/lib/api/attributes');
 const {Worker} = require('node:worker_threads');
 
 const workDir = __dirname+"/dbworker"
+// 2do - setup  new worker for saving articles
 
 const fetchData = async (url) => {
     let response = await axios(url)
@@ -51,9 +52,9 @@ const formatAllureTrending = (articleTitles, images, author, description, articl
     for(i = 0; i < articleTitles.length; i++){
         dataObj.push(
             {
-                title: articleTitles[i], 
+                title: articleTitles[i] ? articleTitles[i] : "mystery article", 
                 description: description[i],
-                author: author[i],
+                author: author[i] ? author[i] : "unkown",
                 image_url: images[i],
                 articleLink: "https://www.allure.com" + articleLink[i]
             })
@@ -61,7 +62,7 @@ const formatAllureTrending = (articleTitles, images, author, description, articl
 }
 
 const mainFunc = async () => {
-////////////////IBAN////////////////////////
+//IBAN
 const iban_url = "https://www.iban.com/exchange-rates";
 let iban_res = await fetchData(iban_url);
     if(!iban_res.data){     
@@ -78,9 +79,9 @@ let iban_res = await fetchData(iban_url);
         newStr.shift(); 
         formatCurrencyData(newStr, iban_dataObj); 
     });
-////////////////IBAN////////////////////////
+//IBAN
 
-////////////////ALLURE-TRENDS///////////////
+//ALLURE-TRENDS
 /**
  * here we are grabbing all of the trending topics
  * from allure and formatting the data to be consumed directly 
@@ -114,9 +115,9 @@ for(let i = 0; i < 4; i++){
                 if(string != '' && string.match(/^((?![<>]).)*$/)) return true
         });
         // images
-        let imageLinks = $allureTrends(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
-                if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bw_640\b)(?=.*?\bjpg\b).*$/)) return true
-        });
+        let imageLinks =  $allureTrends(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+                if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bphotos\b)(?=.*?\bjpg\b).*$/)) return true // 
+        }); 
         // titles    
         let articleTitles = $allureTrends(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
             if(string != '' && string.match(/^((?![<>]).)*$/)) return true
@@ -135,32 +136,47 @@ let article_url
 let allureArticles 
 let allure_html
 let $allureArticle
-
-let text = []
+let img_urls 
 for(let i = 0; i < allureTrendDataObj.length; i++){
     try {
     article_url = allureTrendDataObj[i].articleLink;
     allureArticles = await fetchData(article_url);
     allure_html = allureArticles.data;
     $allureArticle = cheerio.load(allure_html);
-    allureArticles = $allureArticle('.article')
-    allureArticles.each(function(){
-        text = $allureArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
-            if(string != '' && string.match(/^((?![<>]).)*$/)) return true
+    allureArticles = $allureArticle('.article');
+    allureArticles.each(function(){ //2do note; refactor rgex we are reusing into functions
+        img_urls =  $allureArticle(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+            if(string.match(/(https[^\s]+\.jpg)/)) return true
+        });
+        //console.log(img_urls)
+        AllureTrendingArticles.push({
+            content: $allureArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+                    if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
+                }),
+             title: allureTrendDataObj[i].title ? allureTrendDataObj[i].title : "mystery article",
+             author: allureTrendDataObj[i].author ? allureTrendDataObj[i].author : "unkown",
+             images: img_urls ?  img_urls : "no images" 
         }); 
-        console.log(text)
-    })
+    });
         
     } catch (error) {
-        console.log(error)
+        console.log(error);
     }
-    
 }
-console.log(text)
-////////////////ALLURE-TRENDS///////////////
+
+AllureTrendingArticles.forEach(e => {
+    for(let i = 0; i < e.content.length; i++){
+        e.content[0] += e.content[i];
+    }
+    e.content = e.content[0];
+});
+
+//console.log(AllureTrendingArticles)
+
+//ALLURE-TRENDS
 
 
-    return {allureTrendDataObj, iban_dataObj};
+    return {allureTrendDataObj, AllureTrendingArticles, iban_dataObj};
 }
   
 mainFunc().then(res => {
@@ -173,6 +189,14 @@ mainFunc().then(res => {
 
     // listen to message from worker thread
     worker.on('message', (msg) => {
-        console.log(msg)
+        console.log(msg);
     });
-})  // thinking of chaining my individual article crawl here. as it wil be dependent on the first overview crawl to extract the article links
+
+    // 2do setup new node wroker
+    // worker.postMessage(res.AllureTrendingArticles);
+
+    // // listen to message from worker thread
+    // worker.on('message', (msg) => {
+    //     console.log(msg);
+    // });
+})  
