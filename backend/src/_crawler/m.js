@@ -3,7 +3,9 @@ const cheerio = require('cheerio');
 const { attr } = require('cheerio/lib/api/attributes');
 const {Worker} = require('node:worker_threads');
 
-const workDir = __dirname+"/dbworker"
+// node workers
+const workDirAllureTrendsList = __dirname+"/dbworkerAllureTrendsList";
+const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
 // 2do - setup  new worker for saving articles
 
 const fetchData = async (url) => {
@@ -155,7 +157,7 @@ for(let i = 0; i < allureTrendDataObj.length; i++){
                 }),
              title: allureTrendDataObj[i].title ? allureTrendDataObj[i].title : "mystery article",
              author: allureTrendDataObj[i].author ? allureTrendDataObj[i].author : "unkown",
-             images: img_urls ?  img_urls : "no images" 
+             images: img_urls ?  img_urls : [] 
         }); 
     });
         
@@ -169,34 +171,28 @@ AllureTrendingArticles.forEach(e => {
         e.content[0] += e.content[i];
     }
     e.content = e.content[0];
+    e.content = e.content.split(`${e.author}`)
+    e.content = e.content[1] ? e.content[1] : e.content[0];
 });
-
 //console.log(AllureTrendingArticles)
-
 //ALLURE-TRENDS
-
 
     return {allureTrendDataObj, AllureTrendingArticles, iban_dataObj};
 }
   
 mainFunc().then(res => {
-    // start worker
-    const worker = new Worker(workDir);
-
-    console.log("sending crawled data to worker");
-    // send formated data to worker
-    worker.postMessage(res.allureTrendDataObj);
-
-    // listen to message from worker thread
-    worker.on('message', (msg) => {
+    // worker for Allure trending articles list
+    const worker_AllureTrendsList = new Worker(workDirAllureTrendsList);
+    console.log("sending crawled data to Article List worker");
+    worker_AllureTrendsList.postMessage(res.allureTrendDataObj);
+    worker_AllureTrendsList.on('message', (msg) => {
         console.log(msg);
     });
-
-    // 2do setup new node wroker
-    // worker.postMessage(res.AllureTrendingArticles);
-
-    // // listen to message from worker thread
-    // worker.on('message', (msg) => {
-    //     console.log(msg);
-    // });
+     // worker for Allure articles constructed from article list
+    const worker_AllureArticles = new Worker(workDirAllureArticles);
+    console.log("sending crawled data to Article worker");
+    worker_AllureArticles.postMessage(res.AllureTrendingArticles);
+    worker_AllureArticles.on('message', (msg) => {
+        console.log(msg);
+    });
 })  

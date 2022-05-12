@@ -31,10 +31,19 @@ class BeautyDAO {
             console.log(err);
         }
     }
-           
+    // insert all the trending articles from allure (overview) Makes an article list    
     static async insertAllureTrends(something) {
         try {
             return await AllureTrendsOverview.insertMany(something.body.data); 
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    // insert all the trending articles from allure articles constructed from the article list    
+    static async insertAllureTrendsArticles(something) {
+        try {
+            return await AllureTrendsArticles.insertMany(something.body.data); 
         } catch (err) {
             console.log(err);
         }
