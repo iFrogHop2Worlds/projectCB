@@ -20,17 +20,28 @@ class BeautyDAO {
      * this function is currently just grabbing all data out of the 
      * beauty collection
     */
-    static async getAllBeauty() {
+    static async getAllAllureTrends() {
         try {
             let ans = await AllureTrendsOverview
             .find({})
-            .project({product: 1, _id: 0})
+            .project({})
             .toArray();
             return ans
         } catch (err) {
             console.log(err);
         }
-    }
+    }   
+    static async getAllAllureArticles() {
+        try {
+            let ans = await AllureTrendsArticles
+            .find({})
+            .project({})
+            .toArray();
+            return ans
+        } catch (err) {
+            console.log(err);
+        }
+    } 
     // insert all the trending articles from allure (overview) Makes an article list    
     static async insertAllureTrends(something) {
         try {

@@ -3,7 +3,8 @@ const BeautyController = require("./beautyData.controller.js");
 
 const router = new Router();
 
-router.route("/").get(BeautyController.apiGetAllProduct) 
+router.route("/getAllAllureTrends").get(BeautyController.apiGetAllAllureTrends) 
+router.route("/getAllAllureArticles").get(BeautyController.apiGetAllAllureArticles) 
 router.route("/postAllureTrends").post(BeautyController.apiInsertAllureTrends)
 router.route("/postAllureTrendsArticles").post(BeautyController.apiInsertAllureTrendsArticles)
 router.route("/update").put(BeautyController.apiUpdateAllProduct)

@@ -1,0 +1,21 @@
+{
+  "name": "webapp",
+  "version": "0.0.2",
+  "author": "visnup <visnupx@gmail.com> (http://visnup.com)",
+  "main": "./webapp.js",
+  "engines": {
+    "node": "*"
+  },
+  "directories": {
+    "lib": "."
+  },
+  "files": [
+    ""
+  ],
+  "description": "Make a webapp out of anything",
+  "homepage": "https://gist.github.com/700995",
+  "repository": {
+    "type": "git",
+    "url": "git@gist.github.com:700995.git"
+  }
+}

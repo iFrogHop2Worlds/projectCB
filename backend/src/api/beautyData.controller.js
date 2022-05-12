@@ -2,10 +2,20 @@ const BeautyDAO = require("../dao/AllureTrendsDAO");
 
 class BeautyController {
 
-    static async apiGetAllProduct(req, res, next) {
+    static async apiGetAllAllureTrends(req, res, next) {
         let result
         try {
-            result = await BeautyDAO.getAllBeauty()
+            result = await BeautyDAO.getAllAllureTrends()
+            res.json(result)
+        } catch (err) {
+            res.status(500).json({error: err});
+        }
+    }   apiGetAllAllureArticles
+
+    static async apiGetAllAllureArticles(req, res, next) {
+        let result
+        try {
+            result = await BeautyDAO.getAllAllureArticles()
             res.json(result)
         } catch (err) {
             res.status(500).json({error: err});
