@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable react/jsx-key */
 /* eslint-disable spaced-comment */
 /* eslint-disable no-trailing-spaces */
 /* eslint-disable array-callback-return */
@@ -7,33 +9,36 @@
 // eslint-disable-next-line no-unused-vars
 import axios from 'axios';
 import React, { useState } from "react";
-  //test
+
+  //testing- simply calls our api and displays  all the trending articles we got from Allure.
 const AllureTrendingArticles =()=> {
     const [allureTrending, setAllureTrending] = useState([]);
     const url = 'http://localhost:5000/api/v1/getAllAllureArticles';
-    const articles = [];
+    let articles = [];
     const get = async urls => {
-      // eslint-disable-next-line no-return-await
+      // request to our api
       await axios.get(urls).then(e => {
-        e.data.map(el => {
-          articles.push([
-            el.title, 
-            el.content 
-          ]);
-        });
+        // creating an array of elements with our data
+        articles = e.data.map((el) => 
+          <><p>{el.title}</p><p>{el.content}</p><img src={el.images[el.images.length - 1]} /></>  
+     );
+        // setting state
         setAllureTrending(articles)
-        // console.log(e.data);
+
       });
     };
-    if(allureTrending.length < 2){
+    // quick and dirty gaurd. If we have not fetched anything then fetch.
+    if(allureTrending.length < 1){
       get(url);
     }
     
-    console.log(allureTrending);
-
+   
     return (
       <div>
-        {allureTrending}
+        <>
+          {allureTrending}
+        </>
+        
       </div>
     )
 }
