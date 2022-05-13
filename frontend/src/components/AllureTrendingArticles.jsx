@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable react/jsx-key */
 /* eslint-disable spaced-comment */
@@ -19,8 +20,15 @@ const AllureTrendingArticles =()=> {
       // request to our api
       await axios.get(urls).then(e => {
         // creating an array of elements with our data
+        // only displaying single image of many and may seem wrong at glance
+        // just need to add more elements to handle the data
         articles = e.data.map((el) => 
-          <><p>{el.title}</p><p>{el.content}</p><img src={el.images[el.images.length - 1]} /></>  
+          <>
+            <p>{el.title}</p>
+            <p>written by: {el.author}</p>
+            <p>{el.content}</p>
+            <img src={el.images[el.images.length - 1]} width={621} height={350}/>
+          </>  
      );
         // setting state
         setAllureTrending(articles)

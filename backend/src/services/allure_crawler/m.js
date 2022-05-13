@@ -17,7 +17,7 @@ const fetchData = async (url) => {
         console.error("Error occured while trying to fetch data");
         return;
     }
-    console.log("creepy crawlin yo");
+    console.log("gathering resources..");
     return response;
 }
 
@@ -51,7 +51,7 @@ const formatAllureTrending = (articleTitles, images, author, description, articl
         }
     }
 
-    for(i = 0; i < articleTitles.length; i++){
+    for(i = 0; i < articleLink.length; i++){
         dataObj.push(
             {
                 title: articleTitles[i] ? articleTitles[i] : "mystery article", 
@@ -90,7 +90,7 @@ let iban_res = await fetchData(iban_url);
  * and ran through data pipeline for analysis data etc
  */
 let allureTrendDataObj = [] // an array of objects we insert into the db
-for(let i = 0; i < 4; i++){
+for(let i = 1; i <= 4; i++){
     const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}` 
     let allure_trends = await fetchData(allure_trends_url)
 
@@ -116,6 +116,7 @@ for(let i = 0; i < 4; i++){
         let author = $allureTrends(this).find('p').toString().split('</span>').filter(string => {
                 if(string != '' && string.match(/^((?![<>]).)*$/)) return true
         });
+        console.log(author)
         // images
         let imageLinks =  $allureTrends(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                 if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bphotos\b)(?=.*?\bjpg\b).*$/)) return true // 
@@ -165,17 +166,31 @@ for(let i = 0; i < allureTrendDataObj.length; i++){
         console.log(error);
     }
 }
-
+// combining all of the <p> elements into a single string
+// can probably do this better
 AllureTrendingArticles.forEach(e => {
     for(let i = 0; i < e.content.length; i++){
+        // console.log(e.content[0])
+        // console.log(e.content[1])
+        // console.log(e.content[2])
+        // console.log(e.content[3])
+        // would seem better if I can filter out author name and By By / by by here
         e.content[0] += e.content[i];
     }
     e.content = e.content[0];
-    e.content = e.content.split(`${e.author}`)
+    // for some reason some articles are getting through that have not been split
+    // I suspect this maybe causing the offset making some of the later articles author 
+    // not match. Generally they match atm.
+    e.content = e.content.split(`${e.author}`)  
     e.content = e.content[1] ? e.content[1] : e.content[0];
 });
 //console.log(AllureTrendingArticles)
 //ALLURE-TRENDS
+
+//Glamour magazine
+//Makeup
+
+//Glamour magazine
 
     return {allureTrendDataObj, AllureTrendingArticles, iban_dataObj};
 }

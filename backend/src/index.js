@@ -1,7 +1,8 @@
 const app = require("./server");
 const { MongoClient } = require("mongodb");
 const BeautyDAO = require("./dao/AllureTrendsDAO")
-const crawler = require('./_crawler/m')
+// const Allure_crawler = require('./services/allure_crawler/m')
+const Glamour_crawler = require("./services/glamour_crawler/m")
 const port = process.env.PORT || 8181;
 
 MongoClient.connect(

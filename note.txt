@@ -9,3 +9,5 @@ genreal notes
 	
 	- realm deck. Change the meta channel but keep enjoying all the same content. this is an idea
 	for expanding and connecting these instances. 
+
+	- add supoprt for embedded videos.
