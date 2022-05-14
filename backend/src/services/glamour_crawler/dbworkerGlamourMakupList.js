@@ -6,10 +6,10 @@ try {
     parentPort.once("message", (message) => {
         console.log(`recieved list data from main`)
        console.log(message) 
-    //     axios.post('http://localhost:5000/api/v1/postAllureTrends', {     // works but want to use bulkwrite
-    //         method: 'post',
-    //         data: message
-    // })
+        axios.post('http://localhost:5000/Glamour/postGlamourMakeupList', {  
+            method: 'post',
+            data: message
+    }).catch(e => console.log(e))
     })  
 } catch (error) {
     console.log(error)

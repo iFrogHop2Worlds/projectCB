@@ -1,7 +1,6 @@
 const axios = require('axios').default;
 const cheerio = require('cheerio');
 const { attr } = require('cheerio/lib/api/attributes');
-const { linkSync } = require('node:fs');
 const {Worker} = require('node:worker_threads');
 
 // node workers
@@ -21,8 +20,6 @@ const fetchData = async (url) => {
     return response;
 }
 
-
-// fix broken titles
 const formatGlamour = (articleTitles, imageLinks, author, description, articleLink, glamourMakeupData) => {
     for(let i = 0; i < articleTitles.length-1; i++){
         if(articleTitles[i].endsWith(' ')){
@@ -34,7 +31,21 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
          articleTitles[i+2] = ''
         }
     }
-
+    //2dp refactor some of this repeated code
+    for(let i = 0; i < description.length-1; i++){
+        if(description[i].endsWith(' ')){
+         description[i] += description[i+1]
+         description[i+1] = ''
+        } description
+        if(/^\s/.test(description[i+2])){
+         description[i] += description[i+2]
+         description[i+2] = ''
+        }
+    }
+    description = description.filter(string => {
+        if(string != '') return true
+    })
+    //console.log(description) 
     for(let i = 0; i < author.length; i++) {
         if(author[i+1] == ' and '){
             author[i] += author[i+1] + author[i+2]
@@ -55,7 +66,8 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
                 description: description[i],
                 author: author[i] ? author[i] : "unkown",
                 image_url: imageLinks[i],
-                articleLink: "https://www.glamourmagazine.co.uk/article/" + articleLink[i]
+                articleLink: "https://www.glamourmagazine.co.uk/article/" + articleLink[i],
+                source: "Glamour"
             })
     }
 }
@@ -65,18 +77,20 @@ const mainFunc = async () => {
 //Makeup
 let fixedUrls = []
 let glamourMakeupData = [] // an array of objects we insert into the db
+
 const reorganizeURLS = urls => {
     urls.forEach(e => {
         fixedUrls.push(e)
     })
 }
+
 for(let i = 1; i <= 20; i++){
     const glamour_makeup_url = `https://www.glamourmagazine.co.uk/topic/makeup?page=${i}`; 
     let glamour_makeup = await fetchData(glamour_makeup_url);
 
     if(!glamour_makeup.data){     
-    console.log("Invalid data Obj");  
-    return; 
+        console.log("Invalid data Obj");  
+        return; 
     }
 
     const glamour_makeup_html = glamour_makeup.data;
@@ -89,11 +103,7 @@ for(let i = 1; i <= 20; i++){
             if(string.match(/^((?![<>]).)*$/)) return true 
         });
         articleLink = [...new Set(articleLink)]; // removing duplicate entries
-        // short descriptions
-        let description = $glamourMakeup(this)
-        .find('.BaseWrap-sc-TURhJ').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
-            if(string != '' && string != 'By ' && string.match(/^((?![<>]).)*$/)) return true
-        });    
+    
         // author names
         let author = $glamourMakeup(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/)
         .filter(string => {
@@ -109,14 +119,21 @@ for(let i = 1; i <= 20; i++){
             if(string != '' && string.match(/^((?![<>]).)*$/)) return true
         }); 
         //console.log(articleTitles)
-            reorganizeURLS(articleLink)
-            formatGlamour(articleTitles, imageLinks, author, description, articleLink, glamourMakeupData);
-            console.log(fixedUrls)
+        // short descriptions
+        let description = $glamourMakeup(this)
+            .find('.BaseWrap-sc-TURhJ').toString()
+            .split(/(?<=\>)(.*?)(?=\<)/)
+            .filter(e => {
+                if(e != '' && e != 'By ' && !author.includes(e) && !e.match('<')) return true
+            })
+         
+        reorganizeURLS(articleLink)
+        formatGlamour(articleTitles, imageLinks, author, description, articleLink, glamourMakeupData);
     });
 }
 
 //Glamour magazine
-    // console.log(glamourMakeupData)
+    console.log(glamourMakeupData.length)
     return {glamourMakeupData};
 }
   

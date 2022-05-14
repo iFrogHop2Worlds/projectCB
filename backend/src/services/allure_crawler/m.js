@@ -58,7 +58,8 @@ const formatAllureTrending = (articleTitles, images, author, description, articl
                 description: description[i],
                 author: author[i] ? author[i] : "unkown",
                 image_url: images[i],
-                articleLink: "https://www.allure.com" + articleLink[i]
+                articleLink: "https://www.allure.com" + articleLink[i],
+                source: "Allures"
             })
     }
 }
