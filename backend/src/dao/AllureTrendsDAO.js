@@ -10,7 +10,7 @@ class BeautyDAO {
         try{
             MetaDeck = await conn.db("MetaDeck");
             AllureTrendsOverview = await conn.db("MetaDeck").collection("AllureTrendsOverview");
-            AllureTrendsArticles = await conn.db("MetaDeck").collection("AllureTrendArticles");
+            AllureTrendsArticles = await conn.db("MetaDeck").collection("TrendingArticles");
             console.log("connection to db established")
         } catch (e) {
             console.error(`unable to establish a connection handle in beautyDAO: ${e}`)
@@ -19,11 +19,11 @@ class BeautyDAO {
     /** 
      * this function is currently just grabbing all data out of the 
      * beauty collection
-    */
+    */ 
     static async getAllAllureTrends() {
         try {
             let ans = await AllureTrendsOverview
-            .find({})
+            .find({source: "Allure"})
             .project({})
             .toArray();
             return ans
@@ -34,7 +34,7 @@ class BeautyDAO {
     static async getAllAllureArticles() {
         try {
             let ans = await AllureTrendsArticles
-            .find({})
+            .find({source: "Allure"})
             .project({})
             .toArray();
             return ans
@@ -43,21 +43,39 @@ class BeautyDAO {
         }
     } 
     // insert all the trending articles from allure (overview) Makes an article list    
-    static async insertAllureTrends(something) {
+    static async insertAllureTrends(listItem) {
         try {
-            return await AllureTrendsOverview.insertMany(something.body.data); 
-        } catch (err) {
-            console.log(err);
-        }
+            await AllureTrendsOverview.bulkWrite( [
+                { updateOne :
+                   {
+                      "filter": listItem.body.data,
+                      "update": {$set: listItem.body.data},      
+                      "upsert": true,
+                   }
+                }
+             ] ); 
+    } catch (err) {
+        console.log(err);
+        console.log("in DAO");
+    }
     }
 
     // insert all the trending articles from allure articles constructed from the article list    
-    static async insertAllureTrendsArticles(something) {
+    static async insertAllureTrendsArticles(article) {
         try {
-            return await AllureTrendsArticles.insertMany(something.body.data); 
-        } catch (err) {
-            console.log(err);
-        }
+            await AllureTrendsArticles.bulkWrite( [
+                { updateOne :
+                   {
+                      "filter": article.body.data,
+                      "update": {$set: article.body.data},      
+                      "upsert": true,
+                   }
+                }
+             ] ); 
+    } catch (err) {
+        console.log(err);
+        console.log("in DAO");
+    }
     }
   
     static async updateAllBeauty(updates) {

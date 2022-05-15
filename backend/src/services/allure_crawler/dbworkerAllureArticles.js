@@ -6,10 +6,14 @@ try {
     parentPort.once("message", (message) => {
         console.log(`recieved article data from main`)
        //console.log(message) 
-        // axios.post('http://localhost:5000/api/v1/postAllureTrendsArticles', {     // works but want to use bulkwrite
-        //     method: 'post',
-        //     data: message
-        // })
+       for(let i = 0; i < message.length; i++) {
+            axios.post('http://localhost:5000/Allure/postAllureTrendsArticles', {     // works but want to use bulkwrite
+                method: 'post',
+                data: message[i]
+            }).catch(e => {
+                console.log(e)
+            })
+       }
     })  
 } catch (error) {
     console.log(error)

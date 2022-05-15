@@ -4,7 +4,7 @@ const port = process.env.PORT || 8181;
 const BeautyDAO = require("./dao/AllureTrendsDAO");
 const GlamourDAO = require("./dao/GlamourDAO");
 
-// const Allure_crawler = require('./services/allure_crawler/m')
+const Allure_crawler = require('./services/allure_crawler/m')
 const Glamour_crawler = require("./services/glamour_crawler/m")
 
 

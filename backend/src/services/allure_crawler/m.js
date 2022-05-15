@@ -159,7 +159,8 @@ for(let i = 0; i < allureTrendDataObj.length; i++){
                 }),
              title: allureTrendDataObj[i].title ? allureTrendDataObj[i].title : "mystery article",
              author: allureTrendDataObj[i].author ? allureTrendDataObj[i].author : "unkown",
-             images: img_urls ?  img_urls : [] 
+             images: img_urls ?  img_urls : [] ,
+             source: "Allure"
         }); 
     });
         

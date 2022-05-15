@@ -1,14 +1,15 @@
 
 let MetaDeck
-let GlamourMakeup
+let GlamourMakeupArticleOverviews
+let GlamourMakeupArticles
 class GlamourDAO {
 
     static async injectDB(conn) {
-        if(GlamourMakeup) return;
+        if(GlamourMakeupArticleOverviews) return;
         try{
             MetaDeck = await conn.db("MetaDeck");
-            GlamourMakeup = await conn.db("MetaDeck").collection("Makeup");
-            // GlamourMakeup = await conn.db("MetaDeck").collection("AllureTrendArticles");
+            GlamourMakeupArticleOverviews = await conn.db("MetaDeck").collection("MakeupArticleOverviews");
+            GlamourMakeupArticles = await conn.db("MetaDeck").collection("MakeupArticles");
             console.log("connection to db established")
         } catch (e) {
             console.error(`unable to establish a connection handle in beautyDAO: ${e}`)
@@ -18,8 +19,8 @@ class GlamourDAO {
     // returns a list of article items. We used the values to construct and save articles
     static async getGlamourMakeupArticlesList() {
         try {
-            let ans = await GlamourMakeup
-            .find({})
+            let ans = await GlamourMakeupArticleOverviews
+            .find({source: "Glamour"})
             .project({})
             .toArray();
             return ans
@@ -27,11 +28,11 @@ class GlamourDAO {
             console.log(err);
         }
     }   
-    // returns all whole articles fro makeup
+    // returns all whole articles from makeup
     static async getGlamourMakeupArticles() {
         try {
-            let ans = await GlamourMakeup
-            .find({})
+            let ans = await GlamourMakeupArticleOverviews
+            .find({source: "Glamour"})
             .project({})
             .toArray();
             return ans
@@ -39,22 +40,43 @@ class GlamourDAO {
             console.log(err);
         }
     } 
+    // ** TODO TODAY - refactor to use bulkwrite
     // insert all the trending articles from allure (overview) Makes an article list    
-    static async insertGlamourMakeupList(something) {
-        try {
-            return await GlamourMakeup.insertMany(something.body.data); 
+    static async insertGlamourMakeupList(listItem) {
+            console.log("implementing bulkwrite");
+            console.log(listItem.body.data); 
+            try {
+                await GlamourMakeupArticleOverviews.bulkWrite( [
+                    { updateOne :
+                       {
+                          "filter": listItem.body.data,
+                          "update": {$set: listItem.body.data},      
+                          "upsert": true,
+                       }
+                    }
+                 ] ); 
         } catch (err) {
             console.log(err);
+            console.log("in DAO");
         }
     }
-
+ 
     // insert all the trending articles from allure articles constructed from the article list    
-    static async insertGlamourMakeupArticles(something) {
+    static async insertGlamourMakeupArticles(article) {
         try {
-            return await GlamourMakeup.insertMany(something.body.data); 
-        } catch (err) {
-            console.log(err);
-        }
+            await GlamourMakeupArticles.bulkWrite( [
+                { updateOne :
+                   {
+                      "filter": article.body.data,
+                      "update": {$set: article.body.data},      
+                      "upsert": true,
+                   }
+                }
+             ] ); 
+    } catch (err) {
+        console.log(err);
+        console.log("in DAO");
+    }
     }
 
     // update 
@@ -63,3 +85,4 @@ class GlamourDAO {
     // delete
 }
 module.exports = GlamourDAO;
+

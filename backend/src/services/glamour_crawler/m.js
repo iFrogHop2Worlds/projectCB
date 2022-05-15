@@ -7,6 +7,13 @@ const {Worker} = require('node:worker_threads');
 const workDirGlamourMakeupList = __dirname+"/dbworkerGlamourMakupList";
 // const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
 
+let glamourMakeupData = [] // an array of objects we insert into the db
+let articleLink =  []
+let imageLinks = []
+let articleTitles = []
+let description = []
+let author = []
+
 const fetchData = async (url) => {
     let response = await axios(url)
         .catch(e => {
@@ -57,15 +64,19 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
     author = author.filter(string => {
         if(string != '') return true
     })
-
+    console.log("links: " + articleLink.length)
+    console.log("titles: " + articleTitles.length)
+    console.log("authors: " + author.length)
+    console.log("desc: " + description.length)
+    // console.log(imageLinks.length)
     // setting data object to return
     for(let i = 0; i < articleLink.length; i++){
         glamourMakeupData.push(
             {
                 title: articleTitles[i] ? articleTitles[i] : "mystery article", 
-                description: description[i],
+                description: description[i] ? description[i] : "missing",
                 author: author[i] ? author[i] : "unkown",
-                image_url: imageLinks[i],
+                image_url: imageLinks[i] ? imageLinks[i] : "no image",
                 articleLink: "https://www.glamourmagazine.co.uk/article/" + articleLink[i],
                 source: "Glamour"
             })
@@ -75,15 +86,6 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
 const mainFunc = async () => {
 //Glamour magazine
 //Makeup
-let fixedUrls = []
-let glamourMakeupData = [] // an array of objects we insert into the db
-
-const reorganizeURLS = urls => {
-    urls.forEach(e => {
-        fixedUrls.push(e)
-    })
-}
-
 for(let i = 1; i <= 20; i++){
     const glamour_makeup_url = `https://www.glamourmagazine.co.uk/topic/makeup?page=${i}`; 
     let glamour_makeup = await fetchData(glamour_makeup_url);
@@ -99,40 +101,47 @@ for(let i = 1; i <= 20; i++){
     
     glamour_makeup_articles.each(function() {
         // links to articles
-        let articleLink =  $glamourMakeup(this).find('a').toString().split(/(?<=\href="\/article\/)(.*?)(?=\")/).filter(string => {
+        articleLink = $glamourMakeup(this).find('a').toString().split(/(?<=\href="\/article\/)(.*?)(?=\")/).filter(string => {
             if(string.match(/^((?![<>]).)*$/)) return true 
         });
         articleLink = [...new Set(articleLink)]; // removing duplicate entries
-    
+        //articleLink = articleLink.concat(tmp)
+        //console.log(articleLink)
+
         // author names
-        let author = $glamourMakeup(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/)
-        .filter(string => {
+        author = $glamourMakeup(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
             if(string != 'By ' && string != '' && string.match(/^((?![<>]).)*$/)) return true
         });
-        //console.log(author)
+        
         // images
-        let imageLinks =  $glamourMakeup(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+        imageLinks =  $glamourMakeup(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
             if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bphotos\b)(?=.*?\bjpg\b).*$/)) return true // 
         }); 
+
         // titles    
-        let articleTitles = $glamourMakeup(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+        articleTitles = $glamourMakeup(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
             if(string != '' && string.match(/^((?![<>]).)*$/)) return true
         }); 
+     
         //console.log(articleTitles)
         // short descriptions
-        let description = $glamourMakeup(this)
+        description = $glamourMakeup(this)
             .find('.BaseWrap-sc-TURhJ').toString()
             .split(/(?<=\>)(.*?)(?=\<)/)
             .filter(e => {
                 if(e != '' && e != 'By ' && !author.includes(e) && !e.match('<')) return true
             })
-         
-        reorganizeURLS(articleLink)
-        formatGlamour(articleTitles, imageLinks, author, description, articleLink, glamourMakeupData);
+            formatGlamour(articleTitles, imageLinks, author, description, articleLink, glamourMakeupData);
     });
+    //console.log(articleLink)
 }
 
-//Glamour magazine
+
+//console.log(articleLink.length)
+// console.log(articleTitles.length)
+// console.log(author.length)
+// console.log(imageLinks.length)
+    // console.log(glamourMakeupData)
     console.log(glamourMakeupData.length)
     return {glamourMakeupData};
 }

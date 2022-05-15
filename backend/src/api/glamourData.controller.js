@@ -25,9 +25,13 @@
         let result 
         req ? result=req : console.log("Data did not persist properly")
         try {
-            await GlamourDAO.insertGlamourMakeupList(result); // make this dynamic.
+        
+                console.log(result)
+                await GlamourDAO.insertGlamourMakeupList(result);
+            
         } catch (err) {
             console.log(err);
+            console.log("in controller")
         }
     } 
 
