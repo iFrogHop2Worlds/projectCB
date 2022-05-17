@@ -1,9 +1,11 @@
 const axios = require('axios').default;
 const { parentPort } = require('node:worker_threads');
+const { setTimeout: setTimeoutPromise } = require('timers/promises');
 
-// REFACTOR to use Bulkwrite
+const ac = new AbortController();
+const signal = ac.signal;
 try {
-    parentPort.once("message", (message) => {
+    parentPort.once("message", async (message) => {
         console.log(`recieved list data from main`)
        //console.log(message) 
 
@@ -15,6 +17,14 @@ try {
             console.log(e)
             console.log("in axios request")
         })
+            await setTimeoutPromise(500, 'result', {signal})
+            .then(console.log)
+            .catch(err => {
+                if (err.name === 'AbortError')
+                    console.log('The timeout was aborted');
+            });
+            if(i == message.length)
+            ac.abort();
         }
     })      
 } catch (error) {

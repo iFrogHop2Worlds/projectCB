@@ -197,7 +197,8 @@ AllureTrendingArticles.forEach(e => {
     return {allureTrendDataObj, AllureTrendingArticles, iban_dataObj};
 }
   
-mainFunc().then(res => {
+mainFunc()
+.then(res => {
     // worker for Allure trending articles list
     const worker_AllureTrendsList = new Worker(workDirAllureTrendsList);
     console.log("sending crawled data to Article List worker");
@@ -205,7 +206,11 @@ mainFunc().then(res => {
     worker_AllureTrendsList.on('message', (msg) => {
         console.log(msg);
     });
-     // worker for Allure articles constructed from article list
+    return res
+   
+})
+.then(res =>{
+    // worker for Allure articles constructed from article list
     const worker_AllureArticles = new Worker(workDirAllureArticles);
     console.log("sending crawled data to Article worker");
     worker_AllureArticles.postMessage(res.AllureTrendingArticles);

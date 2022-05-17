@@ -4,9 +4,11 @@ const port = process.env.PORT || 8181;
 const BeautyDAO = require("./dao/AllureTrendsDAO");
 const GlamourDAO = require("./dao/GlamourDAO");
 
+// need to cchange how we load these I think running both at the same time is too 
+// computatiion heavy. Getting error worker out of memory running both
+//
 const Allure_crawler = require('./services/allure_crawler/m')
-const Glamour_crawler = require("./services/glamour_crawler/m")
-
+//const Glamour_crawler = require("./services/glamour_crawler/m")
 
 MongoClient.connect(
         process.env.MDECK_DB_URI,
