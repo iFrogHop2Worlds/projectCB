@@ -6,7 +6,6 @@ const {Worker} = require('node:worker_threads');
 // node workers
 const workDirAllureTrendsList = __dirname+"/dbworkerAllureTrendsList";
 const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
-// 2do - setup  new worker for saving articles
 
 const fetchData = async (url) => {
     let response = await axios(url)
@@ -63,7 +62,7 @@ const formatAllureTrending = (articleTitles, images, author, description, articl
             })
     }
 }
-
+// move this into new crawler.
 const mainFunc = async () => {
 //IBAN
 const iban_url = "https://www.iban.com/exchange-rates";
@@ -84,7 +83,6 @@ let iban_res = await fetchData(iban_url);
     });
 //IBAN
 
-//ALLURE-TRENDS
 /**
  * here we are grabbing all of the trending topics
  * from allure and formatting the data to be consumed directly 
@@ -141,6 +139,7 @@ let allureArticles
 let allure_html
 let $allureArticle
 let img_urls 
+
 for(let i = 0; i < allureTrendDataObj.length; i++){
     try {
     article_url = allureTrendDataObj[i].articleLink;
@@ -162,37 +161,20 @@ for(let i = 0; i < allureTrendDataObj.length; i++){
              images: img_urls ?  img_urls : [] ,
              source: "Allure"
         }); 
-    });
-        
+    });      
     } catch (error) {
         console.log(error);
     }
 }
-// combining all of the <p> elements into a single string
-// can probably do this better
+
 AllureTrendingArticles.forEach(e => {
     for(let i = 0; i < e.content.length; i++){
-        // console.log(e.content[0])
-        // console.log(e.content[1])
-        // console.log(e.content[2])
-        // console.log(e.content[3])
-        // would seem better if I can filter out author name and By By / by by here
         e.content[0] += e.content[i];
     }
     e.content = e.content[0];
-    // for some reason some articles are getting through that have not been split
-    // I suspect this maybe causing the offset making some of the later articles author 
-    // not match. Generally they match atm.
     e.content = e.content.split(`${e.author}`)  
     e.content = e.content[1] ? e.content[1] : e.content[0];
 });
-//console.log(AllureTrendingArticles)
-//ALLURE-TRENDS
-
-//Glamour magazine
-//Makeup
-
-//Glamour magazine
 
     return {allureTrendDataObj, AllureTrendingArticles, iban_dataObj};
 }
@@ -218,3 +200,16 @@ mainFunc()
         console.log(msg);
     });
 })  
+/**
+ * So atm I have two crawlers, growing in complexity and to help spread the load
+ * I want to start each crawler after another and stager their runtimes such they
+ * never run at the same time. 
+ * ATM my crawlers are loading at the same time when I import them into my index file. 
+ * How can I do this better?
+ * 
+ * I was thinking wrapping my main functions in each crawler and setting their intervals
+ * such that they never run at the same time.. but this seem half ok. if the crawler engine
+ * becomes 10, 20 or more crawlers this maybe tedius?? 
+ * 
+ * conditional imports? somethingTime -> imports? 
+ */

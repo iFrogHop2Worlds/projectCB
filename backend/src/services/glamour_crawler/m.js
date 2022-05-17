@@ -52,7 +52,7 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
     description = description.filter(string => {
         if(string != '') return true
     })
-    //console.log(description) 
+ 
     for(let i = 0; i < author.length; i++) {
         if(author[i+1] == ' and '){
             author[i] += author[i+1] + author[i+2]
@@ -68,8 +68,7 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
     console.log("titles: " + articleTitles.length)
     console.log("authors: " + author.length)
     console.log("desc: " + description.length)
-    // console.log(imageLinks.length)
-    // setting data object to return
+
     for(let i = 0; i < articleLink.length; i++){
         glamourMakeupData.push(
             {
@@ -105,8 +104,6 @@ for(let i = 1; i <= 20; i++){
             if(string.match(/^((?![<>]).)*$/)) return true 
         });
         articleLink = [...new Set(articleLink)]; // removing duplicate entries
-        //articleLink = articleLink.concat(tmp)
-        //console.log(articleLink)
 
         // author names
         author = $glamourMakeup(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
@@ -122,8 +119,7 @@ for(let i = 1; i <= 20; i++){
         articleTitles = $glamourMakeup(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
             if(string != '' && string.match(/^((?![<>]).)*$/)) return true
         }); 
-     
-        //console.log(articleTitles)
+
         // short descriptions
         description = $glamourMakeup(this)
             .find('.BaseWrap-sc-TURhJ').toString()
@@ -133,15 +129,14 @@ for(let i = 1; i <= 20; i++){
             })
             formatGlamour(articleTitles, imageLinks, author, description, articleLink, glamourMakeupData);
     });
-    //console.log(articleLink)
 }
 
-
-//console.log(articleLink.length)
+// KEEP this for checking data accuracy
+// console.log(articleLink.length)
 // console.log(articleTitles.length)
 // console.log(author.length)
 // console.log(imageLinks.length)
-    // console.log(glamourMakeupData)
+// console.log(glamourMakeupData)
     console.log(glamourMakeupData.length)
     return {glamourMakeupData};
 }

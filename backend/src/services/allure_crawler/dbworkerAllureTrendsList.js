@@ -9,7 +9,7 @@ try {
         console.log(`recieved list data from main`)
        //console.log(message) 
        for(let i = 0; i , i < message.length; i++) {
-        axios.post('http://localhost:5000/Allure/postAllureTrends', {     // works but want to use bulkwrite
+        axios.post('http://localhost:5000/Allure/postAllureTrends', {     
                 method: 'post',
                 data: message[i]
             }).catch(e => {

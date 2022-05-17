@@ -10,7 +10,7 @@ try {
        //console.log(message) 
        for(let i = 0; i < message.length; i++) {
            console.log(message.length)
-            axios.post('http://localhost:5000/Allure/postAllureTrendsArticles', {     // works but want to use bulkwrite
+            axios.post('http://localhost:5000/Allure/postAllureTrendsArticles', {   
                 method: 'post',
                 data: message[i]
             }).catch(e => {
@@ -25,8 +25,6 @@ try {
             if(i == message.length)
             ac.abort();
        }
-    
-       // when the loop finishes we should abort the timer? we keep looping even after the loop params exceeds
     })  
 } catch (error) {
     console.log(error)
