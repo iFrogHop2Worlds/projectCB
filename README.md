@@ -1,13 +1,25 @@
 # projectCB
 
-to get started open a terminal in a folder where you want to keep the project
+Is a webcrawling data engine. Which enables a host of applications and services. 
 
-1) type or copy and paste -> git init 
-2) type or copy and paste -> git clone https://github.com/iFrogHop2Worlds/projectCB.git
+**The current frontend is a prototype of an application which will consume data provided from the crawler engine.
+later we will have crawler user dashboard as well as other aplpications proccessing, serving and consuming data.**
 
-(if either of these commands throws an error you prob need to downlaod and install git https://git-scm.com/downloads)
+To start working with teh code simply
 
-3) type or copy and paste -> cd projectCB
-4) to open in vscode now type or copy and paste -> code . (dont miss that period)
+setup your mongo database instance.
+(1) db name -> MetaDeck
+    collections names -> These values are marked to change. if this is not updated message me.
+                      ->
+                      ->
+                      ->
+                      ->
+                      ->
+(2) set your .env values
 
-thats it for now. happy hacking!
+(3) npm/yarn install (backend folder and frontend if you want to play with that)
+
+(4) npm start (backend for server/crawler && frontend if you want that)
+                
+
+
