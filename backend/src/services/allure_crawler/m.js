@@ -13,7 +13,7 @@ const formatAllureTrending = (articleTitles, images, author, description, articl
     createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObj)
 }
 
-const mainFunc = async () => {
+const AllureCrawler = async () => {
 /**
  * First we are grabbing all of the trending topics
  * from allure and formatting the data to be consumed directly 
@@ -106,32 +106,14 @@ AllureTrendingArticles.forEach(e => {
 
     return {allureTrendDataObj, AllureTrendingArticles};
 }
-   
-// initial run initialized in index.js
-mainFunc()
-.then(res => {
-    // worker for Allure trending articles list
-    const worker_AllureTrendsList = new Worker(workDirAllureTrendsList);
-    console.log("sending crawled data to Article List worker");
-    worker_AllureTrendsList.postMessage(res.allureTrendDataObj);
-    worker_AllureTrendsList.on('message', (msg) => {
-        console.log(msg);
-    });
-    return res
-})
-.then(res =>{
-    // worker for Allure articles constructed from article list
-    const worker_AllureArticles = new Worker(workDirAllureArticles);
-    console.log("sending crawled data to Article worker");
-     worker_AllureArticles.postMessage(res.AllureTrendingArticles);
-    worker_AllureArticles.on('message', (msg) => {
-        console.log(msg);
-    });
-}) 
-// the crawl loop - updates data in staggered time intervals
-const crawlLoop = async () => {
-    await setInterval(() => {
-        mainFunc()
+
+// timed crawls
+(async function() {   
+    for await (const startTime of setInterval(1.728e+8)) {  // 2days 1.728e+8
+        // could add some break condition here although
+        // the idea this run indefinietly
+        AllureCrawler()
+        .catch(e => {console.log(e)})
         .then(res => {
             // worker for Allure trending articles list
             const worker_AllureTrendsList = new Worker(workDirAllureTrendsList);
@@ -151,7 +133,9 @@ const crawlLoop = async () => {
                 console.log(msg);
             });
         })
-    },420000)
+        .catch(e => {console.log(e)})
+        
+    }
+    })();
 
-}
-crawlLoop()
+    module.exports = AllureCrawler

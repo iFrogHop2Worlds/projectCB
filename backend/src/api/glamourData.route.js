@@ -47,6 +47,7 @@ router.route("/postGlamourWellbeingArticles").post(GlamourController.apiInsertGl
 // video
 router.route("/getGlamourVideoList").get(GlamourController.apiGetAllGlamourVideoList) 
 router.route("/getGlamourVideos").get(GlamourController.apiGetAllGlamourVideos) 
+router.route("/postGlamourVideoList").post(GlamourController.apiInsertGlamourVideoList)
 router.route("/postGlamourVideo").post(GlamourController.apiInsertGlamourVideo)
 
 // discount codes TBD

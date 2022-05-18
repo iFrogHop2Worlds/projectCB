@@ -53,7 +53,7 @@ const formatGlamour = (articleTitles, images, author, description, articleLink, 
     createArticleListObject(articleTitles, images, author, description, articleLink, source, glamourMakeupData)
 } 
 
-const mainFunc = async () => {
+const GlamourCrawler = async () => {
 //Glamour magazine
 //Makeup
 for(let i = 1; i <= 20; i++){
@@ -111,45 +111,22 @@ for(let i = 1; i <= 20; i++){
 // console.log(glamourMakeupData.length)
     return {glamourMakeupData};
 }
-mainFunc().then(res => {  
-    // worker 1 for articles list
-    const worker_GlamourMakeupList = new Worker(workDirGlamourMakeupList);
-    console.log("sending crawled data to Article List worker");
-    worker_GlamourMakeupList.postMessage(res.glamourMakeupData);
-    worker_GlamourMakeupList.on('message', (msg) => {
-        console.log(msg);
-    });
-     // worker 2 articles constructed from article list
-    // const worker_AllureArticles = new Worker(workDirAllureArticles);
-    // console.log("sending crawled data to Article worker");
-    // worker_AllureArticles.postMessage(res.AllureTrendingArticles);
-    // worker_AllureArticles.on('message', (msg) => {
-    //     console.log(msg);
-    // });
-})
 
-    // the crawl loop - updates data in staggered time intervals
-    const crawlLoop = async () => {
-        await setInterval(() => {
-            mainFunc().then(res => {
-                // worker 1 for articles list
-                const worker_GlamourMakeupList = new Worker(workDirGlamourMakeupList);
-                console.log("sending crawled data to Article List worker");
-                worker_GlamourMakeupList.postMessage(res.glamourMakeupData);
-                worker_GlamourMakeupList.on('message', (msg) => {
-                    console.log(msg);
-                });
-                 // worker 2 articles constructed from article list
-                // const worker_AllureArticles = new Worker(workDirAllureArticles);
-                // console.log("sending crawled data to Article worker");
-                // worker_AllureArticles.postMessage(res.AllureTrendingArticles);
-                // worker_AllureArticles.on('message', (msg) => {
-                //     console.log(msg);
-                // });
-            })
-        },300000) // 3days 2.592e+8
-
-
+// timed crawls
+(async function() {  
+    for await (const startTime of setInterval(2.592e+8)) {  // 3days 2.592e+8 
+        // could add some break condition here although
+        // the idea this run indefinietly
+        GlamourCrawler().then(res => {
+            // worker 1 for articles list
+            const worker_GlamourMakeupList = new Worker(workDirGlamourMakeupList);
+            console.log("sending crawled data to Article List worker");
+            worker_GlamourMakeupList.postMessage(res.glamourMakeupData);
+            worker_GlamourMakeupList.on('message', (msg) => {
+                console.log(msg);
+            });
+        })
     }
-    crawlLoop()
-  
+    })();
+
+    module.exports = GlamourCrawler
