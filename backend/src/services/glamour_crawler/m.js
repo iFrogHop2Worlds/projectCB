@@ -44,10 +44,11 @@ const formatGlamour = (articleTitles, images, author, description, articleLink, 
     author = author.filter(string => {
         if(string != '') return true
     })
-    console.log("links: " + articleLink.length)
-    console.log("titles: " + articleTitles.length)
-    console.log("authors: " + author.length)
-    console.log("desc: " + description.length)
+    // 4 testing
+    // console.log("links: " + articleLink.length)
+    // console.log("titles: " + articleTitles.length)
+    // console.log("authors: " + author.length)
+    // console.log("desc: " + description.length)
     let source ="Glamour"
     createArticleListObject(articleTitles, images, author, description, articleLink, source, glamourMakeupData)
 } 
@@ -107,7 +108,7 @@ for(let i = 1; i <= 20; i++){
 // console.log(author.length)
 // console.log(imageLinks.length)
 // console.log(glamourMakeupData)
-    console.log(glamourMakeupData.length)
+// console.log(glamourMakeupData.length)
     return {glamourMakeupData};
 }
 mainFunc().then(res => {  

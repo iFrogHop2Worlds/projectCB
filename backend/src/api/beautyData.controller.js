@@ -26,7 +26,7 @@ class BeautyController {
         let result 
         req ? result=req : console.log("Data did not persist properly")
         try {
-            await BeautyDAO.insertAllureTrends(result); // make this dynamic.
+            await BeautyDAO.insertAllureTrends(result); 
         } catch (err) {
             console.log(err);
         }
@@ -36,14 +36,13 @@ class BeautyController {
         let result 
         req ? result=req : console.log("Data did not persist properly")
         try { 
-            await BeautyDAO.insertAllureTrendsArticles(result); // make this dynamic.
+            await BeautyDAO.insertAllureTrendsArticles(result); 
         } catch (err) {
             console.log(err);
         }
     } 
  
     static async apiUpdateAllProduct(req, res, next) {
-        // requires a specific document, not an upsert
         try {
             await BeautyDAO.updateAllBeauty(req)
         } catch (err) {

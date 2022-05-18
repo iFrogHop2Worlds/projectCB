@@ -9,7 +9,6 @@ try {
         console.log(`recieved article data from main`)
        //console.log(message) 
        for(let i = 0; i < message.length; i++) {
-           console.log(message.length)
             axios.post('http://localhost:5000/Allure/postAllureTrendsArticles', {   
                 method: 'post',
                 data: message[i]
@@ -17,7 +16,7 @@ try {
                 console.log(e)
             })
             await setTimeoutPromise(500, 'result', {signal})
-            .then(console.log)
+            .then(console.log("Allure articles +1"))
             .catch(err => {
                 if (err.name === 'AbortError')
                     console.log('The timeout was aborted');

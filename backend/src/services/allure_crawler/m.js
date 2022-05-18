@@ -7,11 +7,9 @@ const { fetchData, fixBrokenTitlesJOIN, createArticleListObject, createArticleOb
 // node workers
 const workDirAllureTrendsList = __dirname+"/dbworkerAllureTrendsList";
 const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
-
+let source ="Allure"
 const formatAllureTrending = (articleTitles, images, author, description, articleLink, dataObj) => {
     fixBrokenTitlesJOIN(articleTitles)
-    
-    let source ="Allure"
     createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObj)
 }
 
@@ -48,7 +46,6 @@ for(let i = 1; i <= 4; i++){
         let author = $allureTrends(this).find('p').toString().split('</span>').filter(string => {
                 if(string != '' && string.match(/^((?![<>]).)*$/)) return true
         });
-        console.log(author)
         // images
         let imageLinks =  $allureTrends(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                 if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bphotos\b)(?=.*?\bjpg\b).*$/)) return true // 
@@ -71,8 +68,10 @@ let article_url
 let allureArticles 
 let allure_html
 let $allureArticle
+let article_title
+let article_author
+let article_content
 let img_urls 
-
 for(let i = 0; i < allureTrendDataObj.length; i++){
     try {
     article_url = allureTrendDataObj[i].articleLink;
@@ -80,20 +79,16 @@ for(let i = 0; i < allureTrendDataObj.length; i++){
     allure_html = allureArticles.data;
     $allureArticle = cheerio.load(allure_html);
     allureArticles = $allureArticle('.article');
-    allureArticles.each(function(){ //2do note; refactor rgex we are reusing into functions
+    allureArticles.each(function(){ 
+        article_title = allureTrendDataObj[i].title
+        article_author = allureTrendDataObj[i].author
         img_urls =  $allureArticle(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
             if(string.match(/(https[^\s]+\.jpg)/)) return true
         });
-        //console.log(img_urls)
-        AllureTrendingArticles.push({
-            content: $allureArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
-                    if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
-                }),
-             title: allureTrendDataObj[i].title ? allureTrendDataObj[i].title : "mystery article",
-             author: allureTrendDataObj[i].author ? allureTrendDataObj[i].author : "unkown",
-             images: img_urls ?  img_urls : [] ,
-             source: "Allure"
-        }); 
+        article_content =  $allureArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+            if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
+        })
+        createArticleObject(article_content,article_author , article_title, img_urls, source, AllureTrendingArticles)
     });      
     } catch (error) {
         console.log(error);

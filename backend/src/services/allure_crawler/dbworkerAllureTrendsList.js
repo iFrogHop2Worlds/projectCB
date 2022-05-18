@@ -14,9 +14,9 @@ try {
                 data: message[i]
             }).catch(e => {
                 console.log(e)
-            })
+            }) 
             await setTimeoutPromise(500, 'result', {signal})
-            .then(console.log)
+            .then(console.log("Allure trends list +1"))
             .catch(err => {
                 if (err.name === 'AbortError')
                     console.log('The timeout was aborted');

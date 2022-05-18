@@ -49,8 +49,15 @@ const createArticleListObject = (articleTitles, images, author, description, art
     }
 }
 
-const createArticleObject = () => {
-
+// needs more thought
+const createArticleObject = ( article_content,article_author , article_title, article_images, source, dataObj) => {
+    dataObj.push({
+        content: article_content ? article_content : "nothing to show",
+         title: article_title ? article_title : "mystery article",
+         author: article_author ? article_author : "unkown",
+         images: article_images ?  article_images : [] ,
+         source: source
+    }); 
 }
 
 module.exports = {fetchData, fixBrokenTitlesJOIN, createArticleListObject, createArticleObject}

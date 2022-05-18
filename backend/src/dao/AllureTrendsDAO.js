@@ -45,7 +45,6 @@ class BeautyDAO {
     // insert all the trending articles from allure (overview) Makes an article list    
     static async insertAllureTrends(listItem) {
         try {
-            console.log(listItem.body.data)
             if(listItem.body.data == undefined)return
             await AllureTrendsOverview.bulkWrite( [
                 { updateOne :

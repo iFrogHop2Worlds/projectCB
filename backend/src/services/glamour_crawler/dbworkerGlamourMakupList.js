@@ -18,7 +18,7 @@ try {
             console.log("in axios request")
         })
             await setTimeoutPromise(500, 'result', {signal})
-            .then(console.log)
+            .then(console.log("Glamour makeup list +1"))
             .catch(err => {
                 if (err.name === 'AbortError')
                     console.log('The timeout was aborted');
