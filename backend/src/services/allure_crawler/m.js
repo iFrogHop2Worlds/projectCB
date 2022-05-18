@@ -1,90 +1,23 @@
-const axios = require('axios').default;
 const cheerio = require('cheerio');
 const { attr } = require('cheerio/lib/api/attributes');
 const {Worker} = require('node:worker_threads');
+const { setInterval } = require('timers/promises');
+const { fetchData, fixBrokenTitlesJOIN, createArticleListObject, createArticleObject } = require('../../helpers')
 
 // node workers
 const workDirAllureTrendsList = __dirname+"/dbworkerAllureTrendsList";
 const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
 
-const fetchData = async (url) => {
-    let response = await axios(url)
-        .catch(e => {
-            console.log(e)
-        });    
-    if(response.status !== 200){
-        console.error("Error occured while trying to fetch data");
-        return;
-    }
-    console.log("gathering resources..");
-    return response;
-}
-
-const formatCurrencyData = (arr, dataObj) => {
-    let key = arr[0].split(' ')
-    let symbol
-    let value
-    if(key.length == 3){
-        value = key[2].split(/[A-Za-z]/)
-        symbol = key[2].split(/[0-9]/g)
-        dataObj[key[0] + '_' + key[1] + '_'+ symbol[0]] = value[value.length - 1] 
-    }
-    if(key.length == 2){
-        value = key[1].split(/[A-Za-z]/)
-        symbol = key[1].split(/[0-9]/g)
-        dataObj[key[0] + '_' + symbol[0]] = value[value.length - 1]
-    }
-}
-
 const formatAllureTrending = (articleTitles, images, author, description, articleLink, dataObj) => {
-
-    let i
-    for(i = 0; i < articleTitles.length-1; i++){
-        if(articleTitles[i].endsWith(' ')){
-         articleTitles[i] += articleTitles[i+1]
-         articleTitles[i+1] = ''
-        } 
-        if(/^\s/.test(articleTitles[i+2])){
-         articleTitles[i] += articleTitles[i+2]
-         articleTitles[i+2] = ''
-        }
-    }
-
-    for(i = 0; i < articleLink.length; i++){
-        dataObj.push(
-            {
-                title: articleTitles[i] ? articleTitles[i] : "mystery article", 
-                description: description[i],
-                author: author[i] ? author[i] : "unkown",
-                image_url: images[i],
-                articleLink: "https://www.allure.com" + articleLink[i],
-                source: "Allures"
-            })
-    }
+    fixBrokenTitlesJOIN(articleTitles)
+    
+    let source ="Allure"
+    createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObj)
 }
-// move this into new crawler.
-const mainFunc = async () => {
-//IBAN
-const iban_url = "https://www.iban.com/exchange-rates";
-let iban_res = await fetchData(iban_url);
-    if(!iban_res.data){     
-      console.log("Invalid data Obj");  //validate we got a correct response.
-      return; 
-    }
-    const iban_html = iban_res.data;  
-    const $iban = cheerio.load(iban_html); 
-    const statsTable = $iban('.table.table-bordered.table-hover.downloads > tbody > tr');
-    let iban_dataObj = new Object();
-    statsTable.each(function() {
-        let title = $iban(this).find('td').text(); 
-        let newStr = title.split(/\t/); 
-        newStr.shift(); 
-        formatCurrencyData(newStr, iban_dataObj); 
-    });
-//IBAN
 
+const mainFunc = async () => {
 /**
- * here we are grabbing all of the trending topics
+ * First we are grabbing all of the trending topics
  * from allure and formatting the data to be consumed directly 
  * and ran through data pipeline for analysis data etc
  */
@@ -129,7 +62,7 @@ for(let i = 1; i <= 4; i++){
     });
 }
 /**
- * Now that we have all the trending articles we will 
+ * Second now that we have all the trending articles we will 
  * use this information to crawl each articles page and grab that information
  * Use titles to cross reference??
  */
@@ -176,9 +109,10 @@ AllureTrendingArticles.forEach(e => {
     e.content = e.content[1] ? e.content[1] : e.content[0];
 });
 
-    return {allureTrendDataObj, AllureTrendingArticles, iban_dataObj};
+    return {allureTrendDataObj, AllureTrendingArticles};
 }
-  
+   
+// initial run initialized in index.js
 mainFunc()
 .then(res => {
     // worker for Allure trending articles list
@@ -189,27 +123,40 @@ mainFunc()
         console.log(msg);
     });
     return res
-   
 })
 .then(res =>{
     // worker for Allure articles constructed from article list
     const worker_AllureArticles = new Worker(workDirAllureArticles);
     console.log("sending crawled data to Article worker");
-    worker_AllureArticles.postMessage(res.AllureTrendingArticles);
+     worker_AllureArticles.postMessage(res.AllureTrendingArticles);
     worker_AllureArticles.on('message', (msg) => {
         console.log(msg);
     });
-})  
-/**
- * So atm I have two crawlers, growing in complexity and to help spread the load
- * I want to start each crawler after another and stager their runtimes such they
- * never run at the same time. 
- * ATM my crawlers are loading at the same time when I import them into my index file. 
- * How can I do this better?
- * 
- * I was thinking wrapping my main functions in each crawler and setting their intervals
- * such that they never run at the same time.. but this seem half ok. if the crawler engine
- * becomes 10, 20 or more crawlers this maybe tedius?? 
- * 
- * conditional imports? somethingTime -> imports? 
- */
+}) 
+// the crawl loop - updates data in staggered time intervals
+const crawlLoop = async () => {
+    await setInterval(() => {
+        mainFunc()
+        .then(res => {
+            // worker for Allure trending articles list
+            const worker_AllureTrendsList = new Worker(workDirAllureTrendsList);
+            console.log("sending crawled data to Article List worker");
+            worker_AllureTrendsList.postMessage(res.allureTrendDataObj);
+            worker_AllureTrendsList.on('message', (msg) => {
+                console.log(msg);
+            });
+            return res
+        })
+        .then(res =>{
+            // worker for Allure articles constructed from article list
+            const worker_AllureArticles = new Worker(workDirAllureArticles);
+            console.log("sending crawled data to Article worker");
+            worker_AllureArticles.postMessage(res.AllureTrendingArticles);
+            worker_AllureArticles.on('message', (msg) => {
+                console.log(msg);
+            });
+        })
+    },420000)
+
+}
+crawlLoop()

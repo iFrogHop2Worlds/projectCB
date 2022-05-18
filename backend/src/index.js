@@ -1,11 +1,10 @@
 const app = require("./server");
 const { MongoClient } = require("mongodb");
-const port = process.env.PORT || 8181;
 const BeautyDAO = require("./dao/AllureTrendsDAO");
 const GlamourDAO = require("./dao/GlamourDAO");
-
-const Allure_crawler = require('./services/allure_crawler/m')
-//const Glamour_crawler = require("./services/glamour_crawler/m")
+const port = process.env.PORT || 8181;
+import { scheduler } from 'timers/promises';
+ 
 
 MongoClient.connect(
         process.env.MDECK_DB_URI,
@@ -30,3 +29,13 @@ MongoClient.connect(
             console.log(`Server is running on port: ${port}`);
         });
     })
+
+    // intial load in of crawlers
+    const hatchSpider = async() => {
+        let Glamour_crawler = require("./services/glamour_crawler/m");
+        await scheduler.wait(45000);
+        let Allure_crawler = require('./services/allure_crawler/m')
+   
+    }
+    hatchSpider()
+

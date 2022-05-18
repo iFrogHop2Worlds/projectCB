@@ -1,8 +1,8 @@
-const axios = require('axios').default;
 const cheerio = require('cheerio');
 const { attr } = require('cheerio/lib/api/attributes');
 const {Worker} = require('node:worker_threads');
-
+const { setInterval } = require('timers/promises');
+const { fetchData, fixBrokenTitlesJOIN, createArticleListObject, createArticleObject } = require('../../helpers')
 // node workers
 const workDirGlamourMakeupList = __dirname+"/dbworkerGlamourMakupList";
 // const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
@@ -14,30 +14,10 @@ let articleTitles = []
 let description = []
 let author = []
 
-const fetchData = async (url) => {
-    let response = await axios(url)
-        .catch(e => {
-            console.log(e)
-        });    
-    if(response.status !== 200){
-        console.error("Error occured while trying to fetch data");
-        return;
-    }
-    console.log("gathering resources..");
-    return response;
-}
+const formatGlamour = (articleTitles, images, author, description, articleLink, glamourMakeupData) => {
 
-const formatGlamour = (articleTitles, imageLinks, author, description, articleLink, glamourMakeupData) => {
-    for(let i = 0; i < articleTitles.length-1; i++){
-        if(articleTitles[i].endsWith(' ')){
-         articleTitles[i] += articleTitles[i+1]
-         articleTitles[i+1] = ''
-        } 
-        if(/^\s/.test(articleTitles[i+2])){
-         articleTitles[i] += articleTitles[i+2]
-         articleTitles[i+2] = ''
-        }
-    }
+    fixBrokenTitlesJOIN(articleTitles)
+
     //2dp refactor some of this repeated code
     for(let i = 0; i < description.length-1; i++){
         if(description[i].endsWith(' ')){
@@ -68,19 +48,9 @@ const formatGlamour = (articleTitles, imageLinks, author, description, articleLi
     console.log("titles: " + articleTitles.length)
     console.log("authors: " + author.length)
     console.log("desc: " + description.length)
-
-    for(let i = 0; i < articleLink.length; i++){
-        glamourMakeupData.push(
-            {
-                title: articleTitles[i] ? articleTitles[i] : "mystery article", 
-                description: description[i] ? description[i] : "missing",
-                author: author[i] ? author[i] : "unkown",
-                image_url: imageLinks[i] ? imageLinks[i] : "no image",
-                articleLink: "https://www.glamourmagazine.co.uk/article/" + articleLink[i],
-                source: "Glamour"
-            })
-    }
-}
+    let source ="Glamour"
+    createArticleListObject(articleTitles, images, author, description, articleLink, source, glamourMakeupData)
+} 
 
 const mainFunc = async () => {
 //Glamour magazine
@@ -140,8 +110,7 @@ for(let i = 1; i <= 20; i++){
     console.log(glamourMakeupData.length)
     return {glamourMakeupData};
 }
-  
-mainFunc().then(res => {
+mainFunc().then(res => {  
     // worker 1 for articles list
     const worker_GlamourMakeupList = new Worker(workDirGlamourMakeupList);
     console.log("sending crawled data to Article List worker");
@@ -156,4 +125,30 @@ mainFunc().then(res => {
     // worker_AllureArticles.on('message', (msg) => {
     //     console.log(msg);
     // });
-})  
+})
+
+    // the crawl loop - updates data in staggered time intervals
+    const crawlLoop = async () => {
+        await setInterval(() => {
+            mainFunc().then(res => {
+                // worker 1 for articles list
+                const worker_GlamourMakeupList = new Worker(workDirGlamourMakeupList);
+                console.log("sending crawled data to Article List worker");
+                worker_GlamourMakeupList.postMessage(res.glamourMakeupData);
+                worker_GlamourMakeupList.on('message', (msg) => {
+                    console.log(msg);
+                });
+                 // worker 2 articles constructed from article list
+                // const worker_AllureArticles = new Worker(workDirAllureArticles);
+                // console.log("sending crawled data to Article worker");
+                // worker_AllureArticles.postMessage(res.AllureTrendingArticles);
+                // worker_AllureArticles.on('message', (msg) => {
+                //     console.log(msg);
+                // });
+            })
+        },300000) // 3days 2.592e+8
+
+
+    }
+    crawlLoop()
+  
