@@ -4,10 +4,11 @@ const {Worker} = require('node:worker_threads');
 const { setInterval } = require('timers/promises');
 const { 
     fetchData, 
-    fixBrokenTitlesJOIN, 
+    fixBrokenJOIN, 
     createArticleListObject, 
     createArticleObject,
-    formatArticleTextContent
+    formatArticleTextContent,
+    filterEmptyString
 } = require('../../helpers')
 
 let source ="Glamour"
@@ -24,40 +25,18 @@ let author = []
 
 const formatGlamour = (articleTitles, images, author, description, articleLink, glamourMakeupData) => {
 
-    fixBrokenTitlesJOIN(articleTitles)
-
-    //2dp refactor some of this repeated code
-    for(let i = 0; i < description.length-1; i++){
-        if(description[i].endsWith(' ')){
-         description[i] += description[i+1]
-         description[i+1] = ''
-        } description
-        if(/^\s/.test(description[i+2])){
-         description[i] += description[i+2]
-         description[i+2] = ''
-        }
-    } 
-    description = description.filter(string => {
-        if(string != '') return true
-    })
- 
+    fixBrokenJOIN(articleTitles)
+    fixBrokenJOIN(description)
     for(let i = 0; i < author.length; i++) {
         if(author[i+1] == ' and '){
             author[i] += author[i+1] + author[i+2]
-            author[i+1] = ''; author[i+2] = ''; // flag index for removal
+            author[i+1] = ''; 
+            author[i+2] = ''; // flagging index for removal
             i+=2
         }  
     }
+    filterEmptyString(author)
 
-    author = author.filter(string => {
-        if(string != '') return true
-    })
-    // 4 testing
-    // console.log("links: " + articleLink.length)
-    // console.log("titles: " + articleTitles.length)
-    // console.log("authors: " + author.length)
-    // console.log("desc: " + description.length)
-    
     createArticleListObject(articleTitles, images, author, description, articleLink, source, glamourMakeupData)
 } 
 
@@ -107,7 +86,7 @@ const GlamourCrawler = async () => {
                 formatGlamour(articleTitles, imageLinks, author, description, articleLink, glamourMakeupData);
         });
     }
-
+    console.log(glamourMakeupData)
     // setup our web crawl variables
     let $GlamourArticle
     let GlamourArticle 
@@ -141,7 +120,6 @@ const GlamourCrawler = async () => {
                 img_urls =  $GlamourArticle(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                     if(string.match(/(https[^\s]+\.jpg)/)) return true
                 });
-                console.log(img_urls)
                 // grab text content
                 article_content =  $GlamourArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
                     if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
@@ -161,15 +139,15 @@ const GlamourCrawler = async () => {
     // console.log(articleTitles.length)
     // console.log(author.length)
     // console.log(imageLinks.length)
-    console.log(GlamourMakeupArticles)
-    console.log(GlamourMakeupArticles.length)
-
+    // console.log(GlamourMakeupArticles)
+    // console.log(GlamourMakeupArticles.length)
+    //console.log(glamourMakeupData)
     return {glamourMakeupData, GlamourMakeupArticles};
 }
 
 // timed crawls
 (async function() {  
-    for await (const startTime of setInterval(90000)) {  // 3days 2.592e+8 
+    for await (const startTime of setInterval(30000)) {  // 3days 2.592e+8 
         // could add some break condition here although
         // the idea this run indefinietly
         GlamourCrawler()

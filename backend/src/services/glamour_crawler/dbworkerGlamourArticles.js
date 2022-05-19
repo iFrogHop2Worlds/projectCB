@@ -7,7 +7,7 @@ const signal = ac.signal;
 try {
     parentPort.once("message", async (message) => {
         console.log(`recieved article data from main`)
-       console.log(message) 
+        //console.log(message) 
 
         for(let i = 0; i < message.length; i++) {
             axios.post('http://localhost:5000/Glamour/postGlamourMakeupArticles', {  

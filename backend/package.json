@@ -1,13 +1,13 @@
 {
   "name": "backend",
   "version": "0.0.0",
-  "description": "backend of metadeck",
+  "description": "data engine",
   "main": "index.js",
   "scripts": {
     "ng": "node --max_old_space_size=12000 ./node_modules/.bin/ng",
     "start": "nodemon --max_old_space_size=12000 ./index.js",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest --passWithNoTests --watch"
+    "test": "jest --verbose",
+    "test:watch": "jest --verbose --watch --detectOpenHandles"
   },
   "author": "Billy Best",
   "license": "ISC",

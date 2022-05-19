@@ -16,7 +16,7 @@ const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
 
 const formatAllureTrending = (articleTitles, images, author, description, articleLink, dataObj) => {
 
-    fixBrokenTitlesJOIN(articleTitles)
+    fixBrokenJOIN(articleTitles)
     createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObj)
 }
 

@@ -1,5 +1,12 @@
 const axios = require('axios').default;
 
+const filterEmptyString = (array) => {
+    array = array.filter(string => {
+        if(string != '') return true
+    })
+    return array
+}
+
 /**
  * Makes a get request to specified url
  * @param {string} url 
@@ -13,37 +20,45 @@ const fetchData = async (url) => {
         console.error("Error occured while trying to fetch data");
         return;
     }
-    console.log("gathering resources..");
+    //console.log("gathering resources..");
     return response;
 }
 
 /**
  * takes an array of strings which make up titles being 
  * proccessed by the webcrawler and joins them back together
- * @param {[string]} titles 
+ * @param {[string]} text 
  */
-const fixBrokenTitlesJOIN = (titles) => {
-    for(let i = 0; i < titles.length-1; i++){
-        if(titles[i].endsWith(' ')){
-         titles[i] += titles[i+1]
-         titles[i+1] = ''
+const fixBrokenJOIN = (text) => { 
+    for(let i = 0; i < text.length-1; i++){
+        if(text[i].endsWith(' ')){
+         text[i] += text[i+1]
+         text[i+1] = ''
         } 
-        if(/^\s/.test(titles[i+2])){
-         titles[i] += titles[i+2]
-         titles[i+2] = ''
+        if(/^\s/.test(text[i+2])){
+         text[i] += text[i+2]
+         text[i+2] = ''
         }
+        
     }
+    
+    return text
 }
 
 const formatArticleTextContent = (dataObj) => {
+    if(dataObj)
     dataObj.forEach(e => {
-        for(let i = 0; i < e.content.length; i++){
+        for(let i = 1; i < e.content.length; i++){
             e.content[0] += e.content[i];
         }
         e.content = e.content[0]; // content = newly appended content string
-        e.content = e.content.split(`${e.author}`)  // remove the authors name from begining string
-        e.content = e.content[1] ? e.content[1] : e.content[0]; // if author was split return 2nd element otherwise first 
+        // check if we missed author
+        if(e.author){
+            e.content = e.content.split(`${e.author}`)  // remove the authors name from begining string
+            e.content = e.content[1] ? e.content[1] : e.content[0]; // if author was split return 2nd element otherwise first 
+        }    
     });
+    return dataObj
 }
 
 /**
@@ -97,4 +112,11 @@ const createArticleObject = ( article_content,article_author , title, article_im
     }); 
 }
 
-module.exports = {fetchData, fixBrokenTitlesJOIN, createArticleListObject, createArticleObject, formatArticleTextContent}
+module.exports = {
+    fetchData, 
+    filterEmptyString, 
+    fixBrokenJOIN, 
+    createArticleListObject, 
+    createArticleObject, 
+    formatArticleTextContent
+}
