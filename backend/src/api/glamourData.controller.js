@@ -1,15 +1,26 @@
  const GlamourDAO = require("../dao/GlamourDAO")
+ // upgrade queries and add delete functionality
+ // low priority but maybe try and generalise some of the functions and share
+ // it accross api routes. Low priority since things are still evolving 
  
  class GlamourController {
      // MAKEUP
     static async apiGetAllGlamourMakeupList(req, res, next) {
-        let result
+        const { search, limit } = req.query
         try {
-            result = await GlamourDAO.getGlamourMakeupArticlesList()
-            res.json(result)
-        } catch (err) {
-            res.status(500).json({error: err});
-        }
+            let queryResult = await GlamourDAO.getGlamourMakeupArticlesList()
+            if(search){ 
+                queryResult = queryResult.filter( result => {
+                    return result.title.startsWith(search)
+                })
+            }
+            if(limit)
+                queryResult = queryResult.slice(0, Number(limit))
+
+                res.json(queryResult)
+            } catch (err) {
+                res.status(500).json({error: err});
+            }
     }   
 
     static async apiGetAllGlamourMakeupArticles(req, res, next) {
@@ -291,7 +302,7 @@
             console.log("in controller")
         }
     } 
-
+ 
     static async apiInsertGlamourWellbeingArticles(req, res, next) {
         let result 
         req ? result=req : console.log("Data did not persist properly")
