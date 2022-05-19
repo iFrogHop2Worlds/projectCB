@@ -36,7 +36,7 @@ const formatGlamour = (articleTitles, images, author, description, articleLink, 
          description[i] += description[i+2]
          description[i+2] = ''
         }
-    }
+    } 
     description = description.filter(string => {
         if(string != '') return true
     })
@@ -128,9 +128,9 @@ const GlamourCrawler = async () => {
             // grab the page data from the response
             Glamour_html = GlamourArticle.data;
             // create our cheerio insatnce variable
-            $GlamourArticle = cheerio.load(Glamour_html);
+            $GlamourArticle = cheerio.load(Glamour_html); 
             // target the article class
-            GlamourArticle = $GlamourArticle('.article');
+            GlamourArticle = $GlamourArticle('.article'); //console.log(GlamourArticle)
             // reuse the title property from the list. ensure accuracy and dont repeat work
             article_title = glamourMakeupData[i].title;
             // reuse the author property from the list. ensure accuracy and dont repeat work
@@ -141,12 +141,15 @@ const GlamourCrawler = async () => {
                 img_urls =  $GlamourArticle(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                     if(string.match(/(https[^\s]+\.jpg)/)) return true
                 });
+                console.log(img_urls)
                 // grab text content
                 article_content =  $GlamourArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
                     if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
                 })
+                //console.log(article_content)
                 createArticleObject(article_content, article_author , article_title, img_urls, source, GlamourMakeupArticles)
-            });      
+            }); 
+           // console.log(GlamourMakeupArticles)     
         } catch (error) {
             console.log(error);
         }
@@ -158,14 +161,15 @@ const GlamourCrawler = async () => {
     // console.log(articleTitles.length)
     // console.log(author.length)
     // console.log(imageLinks.length)
-    // console.log(glamourMakeupData)
-    // console.log(glamourMakeupData.length)
+    console.log(GlamourMakeupArticles)
+    console.log(GlamourMakeupArticles.length)
+
     return {glamourMakeupData, GlamourMakeupArticles};
 }
 
 // timed crawls
 (async function() {  
-    for await (const startTime of setInterval(180000)) {  // 3days 2.592e+8 
+    for await (const startTime of setInterval(90000)) {  // 3days 2.592e+8 
         // could add some break condition here although
         // the idea this run indefinietly
         GlamourCrawler()

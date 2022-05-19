@@ -58,13 +58,20 @@ const formatArticleTextContent = (dataObj) => {
  */
 const createArticleListObject = (titles, images, author, description, links, source, dataObj) => {
     for(let i = 0; i < links.length; i++){
+        let baseUrl;
+        if(source == "Allure"){
+            baseUrl = "https://www.allure.com"
+        }
+        if(source == "Glamour"){
+            baseUrl = "https://www.glamourmagazine.co.uk/article/"
+        }
         dataObj.push(
             {
                 title: titles[i] ? titles[i] : "mystery article", 
                 description: description[i],
                 author: author[i] ? author[i] : "unkown",
                 image_url: images[i],
-                articleLink: "https://www.allure.com" + links[i],
+                articleLink: baseUrl + links[i],
                 source: source
             })
     }

@@ -6,17 +6,17 @@ const ac = new AbortController();
 const signal = ac.signal;
 try {
     parentPort.once("message", async (message) => {
-        console.log(`recieved list data from main`)
-       //console.log(message) 
+        console.log(`recieved article data from main`)
+       console.log(message) 
 
         for(let i = 0; i < message.length; i++) {
             axios.post('http://localhost:5000/Glamour/postGlamourMakeupArticles', {  
                 method: 'post',
                 data: message[i]
-        }).catch(e => {
-            console.log(e)
-            console.log("in axios request")
-        })
+            }).catch(e => {
+                console.log(e)
+                console.log("in axios request")
+            })
             await setTimeoutPromise(500, 'result', {signal})
             .then(console.log("Glamour makeup article +1"))
             .catch(err => {

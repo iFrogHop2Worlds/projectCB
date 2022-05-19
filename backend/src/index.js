@@ -44,7 +44,7 @@ MongoClient.connect(
 
     const hatchSpider = async() => {
         let Glamour_Crawler  = require("./services/glamour_crawler/m");
-        let Allure_Crawler = require('./services/allure_crawler/m'); 
+        //let Allure_Crawler = require('./services/allure_crawler/m'); 
     }
     hatchSpider()
 
