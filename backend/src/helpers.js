@@ -20,7 +20,7 @@ const fetchData = async (url) => {
         console.error("Error occured while trying to fetch data");
         return;
     }
-    //console.log("gathering resources..");
+    console.log("gathering resources..");
     return response;
 }
 
@@ -61,6 +61,17 @@ const formatArticleTextContent = (dataObj) => {
     return dataObj
 }
 
+const fixMultiAuthor = (authors) => {
+    for(let i = 0; i < authors.length; i++) {
+        if(authors[i+1] == ' and '){
+            authors[i] += authors[i+1] + authors[i+2]
+            authors[i+1] = ''; 
+            authors[i+2] = ''; // flagging index for removal
+            i+=2
+        }  
+    }
+}
+
 /**
  * Takes arrays of data and creates new objects 
  * @param {[string]} titles 
@@ -80,6 +91,7 @@ const createArticleListObject = (titles, images, author, description, links, sou
         if(source == "Glamour"){
             baseUrl = "https://www.glamourmagazine.co.uk/article/"
         }
+        
         dataObj.push(
             {
                 title: titles[i] ? titles[i] : "mystery article", 
@@ -112,11 +124,13 @@ const createArticleObject = ( article_content,article_author , title, article_im
     }); 
 }
 
+
 module.exports = {
     fetchData, 
     filterEmptyString, 
     fixBrokenJOIN, 
+    fixMultiAuthor,
+    formatArticleTextContent,
     createArticleListObject, 
     createArticleObject, 
-    formatArticleTextContent
 }

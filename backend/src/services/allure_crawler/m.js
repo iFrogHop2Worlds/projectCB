@@ -118,7 +118,7 @@ const AllureCrawler = async () => {
 
 // timed crawls
 (async function() {   
-    for await (const startTime of setInterval(252000)) {  // 2days 1.728e+8
+    for await (const startTime of setInterval(1.728e+8)) {  // 2days 1.728e+8
         // could add some break condition here although
         // the idea this run indefinietly
         AllureCrawler()
