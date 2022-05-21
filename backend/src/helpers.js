@@ -2,7 +2,7 @@ const axios = require('axios').default;
 
 const filterEmptyString = (array) => {
     array = array.filter(string => {
-        if(string != '') return true
+        if(string != '' && string != ' ') return true
     })
     return array
 }
@@ -41,22 +41,19 @@ const fixBrokenJOIN = (text) => {
         }
         
     }
-    
+    filterEmptyString(text)
     return text
 }
 
 const formatArticleTextContent = (dataObj) => {
     if(dataObj)
     dataObj.forEach(e => {
-        for(let i = 1; i < e.content.length; i++){
-            e.content[0] += e.content[i];
+        for(let i = 2; i < e.content.length; i++){
+            e.content[2] += e.content[i];
         }
-        e.content = e.content[0]; // content = newly appended content string
-        // check if we missed author
-        if(e.author){
-            e.content = e.content.split(`${e.author}`)  // remove the authors name from begining string
-            e.content = e.content[1] ? e.content[1] : e.content[0]; // if author was split return 2nd element otherwise first 
-        }    
+            //e.content = e.content[0].split(`${e.author}`)  // remove the authors name from begining string
+            e.content = e.content[2] ? e.content[2] : e.content[0]; // if author was split return 2nd element otherwise first 
+        // I
     });
     return dataObj
 }
@@ -70,6 +67,7 @@ const fixMultiAuthor = (authors) => {
             i+=2
         }  
     }
+    filterEmptyString(authors)
 }
 
 /**
@@ -102,6 +100,9 @@ const createArticleListObject = (titles, images, author, description, links, sou
                 source: source
             })
     }
+    // console.log(titles)
+    // console.log(author)
+    // console.log(links)
 }
 
 /**
