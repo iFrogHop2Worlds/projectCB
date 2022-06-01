@@ -11,8 +11,9 @@ const {
 } = require('./helpers')
 
 const formatGlamour = (articleTitles, images, author, description, articleLink, dataObjects, source) => {
-    fixBrokenJOIN(articleTitles)
-    fixBrokenJOIN(description)
+    console.log(articleTitles)
+    articleTitles = fixBrokenJOIN(articleTitles)
+    // fixBrokenJOIN(description)
     fixMultiAuthor(author)
     filterEmptyString(author)
     createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObjects)
@@ -69,6 +70,7 @@ const generateArticleList = async (
                     .filter(e => {
                         if(e != '' && e != 'By ' && !authors.includes(e) && !e.match('<')) return true
                     })
+                  
                     formatGlamour(
                         titles, 
                         images, 
@@ -77,10 +79,10 @@ const generateArticleList = async (
                         articleURLs, 
                         dataObjects, 
                         source
-                    );
-                    return dataObjects
+                    ); 
             });
         }
+        return dataObjects
 }
 
 const generateArticles = async (GlamourMakeupArticles, articles_list, source) => {
@@ -128,7 +130,7 @@ const generateArticles = async (GlamourMakeupArticles, articles_list, source) =>
                 console.log(error);
             }
         }
-
+ 
         return formatArticleTextContent(GlamourMakeupArticles)
     
 }

@@ -2,7 +2,7 @@ const axios = require('axios').default;
 
 const filterEmptyString = (array) => {
     array = array.filter(string => {
-        if(string != '' && string != ' ') return true
+        if(string != '' && string != '&nbsp;') return true
     })
     return array
 }
@@ -25,23 +25,83 @@ const fetchData = async (url) => {
 }
 
 /**
+ * still making this more robust.. work in progess
  * takes an array of strings which make up titles being 
  * proccessed by the webcrawler and joins them back together
  * @param {[string]} text 
- */
-const fixBrokenJOIN = (text) => { 
-    for(let i = 0; i < text.length-1; i++){
-        if(text[i].endsWith(' ')){
-         text[i] += text[i+1]
-         text[i+1] = ''
+ */   
+const fixBrokenJOIN = (text) => {  
+   for(let i = 0; i < text.length-1; i++){
+        // cases where i += i+1
+        if(
+            
+            text[i].endsWith(' ') || 
+            text[i].endsWith("‘") ||
+            text[i].endsWith(':') ||
+            text[i+1].startsWith(' ') ||
+            text[i+1].startsWith(':') ||
+            text[i+1].startsWith(',') ||
+            text[i].endsWith("’s") ||
+            text[i+1].startsWith("’s") || text[i+1].startsWith("’S") ||
+            text[i+1].startsWith("'s") || text[i+1].startsWith("'S")
+        ){
+            if(text[i] == ''){
+                text[i-1] += text[i+1]
+                text[i+1] = ''
+            } else {
+                text[i] += text[i+1]
+                text[i+1] = ''
+            }
+
         } 
-        if(/^\s/.test(text[i+2])){
-         text[i] += text[i+2]
-         text[i+2] = ''
+        // cases where i-1 += i
+        if(
+            
+            text[i].startsWith(':') ||
+            text[i].startsWith("’:") ||
+            text[i].startsWith(")") ||
+            text[i].startsWith(' ') ||
+            text[i].startsWith("’s") || text[i].startsWith("’S") ||
+            text[i].startsWith("'s") || text[i].startsWith("'S") ||
+            text[i].startsWith(",") 
+            // text[i].startsWith(".")
+           
+        ){
+            if(text[i-1] == ''){
+                text[i-2] += text[i]
+                text[i] = ''
+            // if(text[i-2] == ''){
+            //     text[i-3] += text[i]
+            //     text[i] = ''
+            // }
+            // if(text[i-3] == ''){
+            //     text[i-4] += text[i]
+            //     text[i] = ''
+            // } 
+            } else {
+                text[i-1] += text[i]
+                text[i] = ''
+            }
+
         }
-        
+        // extreme cases where we need to append across multiple empty elements
+        if(text[i-1] == '' && text[i-2].endsWith(' ')){
+            text[i-2] += text[i]
+            text[i] = ''
+        }
+        if(text[i-1] == '' && text[i-2] == '' && text[i-3].endsWith(' ')){
+            text[i-3] += text[i]
+            text[i] = ''
+        }
+        if(text[i-2] == '' && text[i-3] == '' && text[i].startsWith("’s")){
+            text[i-4] += text[i]
+            text[i] = ''
+        }
+      
     }
-    filterEmptyString(text)
+    //console.log(text)
+    text = filterEmptyString(text)
+    console.log(text)
     return text
 }
 
