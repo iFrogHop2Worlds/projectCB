@@ -26,7 +26,7 @@ let glamourEmpowermentData = []
 let glamourEmpowermentArticles = []
 let glamourWellnessData = []
 let glamourWellnessArticles = []
-let glamourVideoData = []
+let glamourVideoData = [] 
 let glamourVideoArticles = []
 let glamourCoupons = []
 
@@ -127,7 +127,7 @@ await generateArticleList(
             source
         )
     }).catch(e => console.log(e))
-
+    console.log(glamourEntertainmentArticles)
 // //Wellness
 // const glamourWellnessBaseURL = "https://www.glamourmagazine.co.uk/topic/wellness"
 // const glamourWellnessNumPages = 20

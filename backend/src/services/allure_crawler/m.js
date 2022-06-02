@@ -1,119 +1,67 @@
-const cheerio = require('cheerio');
+    const cheerio = require('cheerio');
 const { attr } = require('cheerio/lib/api/attributes');
 const {Worker} = require('node:worker_threads');
 const { setInterval } = require('timers/promises');
-const { fetchData,
-    fixBrokenTitlesJOIN,
-    createArticleListObject,
-    createArticleObject,
-    formatArticleTextContent
-} = require('../../helpers')
+
+const { generateArticleList, generateArticles } = require("../../helpers_crawler")
 let source ="Allure"
 
 // node workers
 const workDirAllureTrendsList = __dirname+"/dbworkerAllureTrendsList";
 const workDirAllureArticles = __dirname+"/dbworkerAllureArticles"
-
-const formatAllureTrending = (articleTitles, images, author, description, articleLink, dataObj) => {
-
-    fixBrokenJOIN(articleTitles)
-    createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObj)
-}
-
-// The crawler grabs a list of something, then constructs new crawl params from the list to crawl again
-// creating new objects with the 2nd crawls data. 
+//objects we use to construct new articles /or make db insertions.
+let allureTrendsData = [] 
+let allureTrendsArticles = []
+let allureSkinData = []
+let allureSkinArticles = []
 const AllureCrawler = async () => {
+// Trends
+    // const allureTrendsBaseURL = "https://www.allure.com/topic/trends"
+    // const allureTrendsNumPages = 5
+    // await generateArticleList(
+    //     allureTrendsData, 
+    //     allureTrendsBaseURL, 
+    //     allureTrendsNumPages,
+    //     source
+    //     ).then(async () => {
+    //         await generateArticles(
+    //             allureTrendsArticles,
+    //             allureTrendsData, //we will loop over and grab links
+    //             source
+    //         )
+    //     }).catch(e => console.log(e))    
+        //console.log(allureTrendsArticles)
 
-    let allureTrendList = [] // an array of objects we insert into the db
-    for(let i = 1; i <= 4; i++){
-        const allure_trends_url = `https://www.allure.com/topic/trends?page=${i}` 
-        let allure_trends = await fetchData(allure_trends_url)
+// Skin
+const allureSkinBaseURL = "https://www.allure.com/skin-care"
+const allureSkinNumPages = 10
+await generateArticleList(
+    allureSkinData, 
+    allureSkinBaseURL, 
+    allureSkinNumPages,
+    source
+    )
+    // .then(async () => {
+    //     await generateArticles(
+    //         allureSkinArticles,
+    //         allureSkinData, //we will loop over and grab links
+    //         source
+    //     )
+    // }).catch(e => console.log(e))  
+    console.log(allureSkinData) 
+// Make
 
-        if(!allure_trends.data){     
-        console.log("Invalid data Obj");  
-        return; 
-    }
-        const allure_html = allure_trends.data;
-        const $allureTrends = cheerio.load(allure_html);
-        const allure_trends_articles = $allureTrends(".summary-list__items");
-    
-        allure_trends_articles.each(function() {
-            // links to articles
-            let articleLink =  $allureTrends(this).find('a').toString().split(/(?<=\href=")(.*?)(?=\")/).filter(string => {
-                if(string.match(/^((?![<>]).)*$/)) return true  //2do remove duplicate entries
-            });
-            articleLink = [...new Set(articleLink)]; // removing duplicate entries
-            // short descriptions
-            let description = $allureTrends(this).find('.BaseWrap-sc-TURhJ').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
-                if(string != '' && string != 'By ' && string.match(/^((?![<>]).)*$/)) return true
-            });    
-            // author names
-            let author = $allureTrends(this).find('p').toString().split('</span>').filter(string => {
-                if(string != '' && string.match(/^((?![<>]).)*$/)) return true
-            });
-            // images
-            let imageLinks =  $allureTrends(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
-                if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bphotos\b)(?=.*?\bjpg\b).*$/)) return true // 
-            }); 
-            // titles    
-            let articleTitles = $allureTrends(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
-                if(string != '' && string.match(/^((?![<>]).)*$/)) return true
-            }); 
-            // console.log(articleTitles)
-            formatAllureTrending(articleTitles, imageLinks, author, description, articleLink, allureTrendList);
-        });
-    }
+// Hair
 
-    // setup our web crawl variables
-    let $allureArticle
-    let allureArticle 
-    let article_url
-    let allure_html
-    // object values
-    let article_title
-    let article_author
-    let article_content
-    let img_urls 
-    let AllureTrendingArticles = [] // the articles data we will return
+// Nails
 
-    for(let i = 0; i < allureTrendList.length; i++){
-        try {
-            // we use the link provided our trends list(dataObj)
-            article_url = allureTrendList[i].articleLink;
-            // make a get request to the article page
-            allureArticle = await fetchData(article_url);
-            // grab the page data from the response
-            allure_html = allureArticle.data;
-            // create our cheerio insatnce variable
-            $allureArticle = cheerio.load(allure_html);
-            // target the article class
-            allureArticle = $allureArticle('.article');
-            // reuse the title property from the list. ensure accuracy and dont repeat work
-            article_title = allureTrendList[i].title;
-            // reuse the author property from the list. ensure accuracy and dont repeat work
-            article_author = allureTrendList[i].author;
+// Wellness
 
-            allureArticle.each(function(){ 
-                // grab article images
-                img_urls =  $allureArticle(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
-                    if(string.match(/(https[^\s]+\.jpg)/)) return true
-                });
-                // grab text content
-                article_content =  $allureArticle(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
-                    if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
-                })
-                createArticleObject(article_content,article_author , article_title, img_urls, source, AllureTrendingArticles)
-            });      
-        } catch (error) {
-            console.log(error);
-        }
-    } 
-    // formating article content
-    formatArticleTextContent(AllureTrendingArticles)
+// Awards
 
-    // objects constructed after crawling and proccessing data. We pass these over to
-    // worker threads to make the requests and save into the db.
-    return {allureTrendList, AllureTrendingArticles};
+// beauty Box??
+
+    return {allureTrendsData, allureTrendsArticles};
 }
 
 // timed crawls
@@ -146,5 +94,5 @@ const AllureCrawler = async () => {
         
     }
     })();
-
+    AllureCrawler() // initialize
     module.exports = AllureCrawler

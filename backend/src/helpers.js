@@ -97,11 +97,11 @@ const fixBrokenJOIN = (text) => {
             text[i-4] += text[i]
             text[i] = ''
         }
-      
+        //console.log(text[i])
     }
     //console.log(text)
     text = filterEmptyString(text)
-    console.log(text)
+    //console.log(text)
     return text
 }
 
@@ -127,7 +127,8 @@ const fixMultiAuthor = (authors) => {
             i+=2
         }  
     }
-    filterEmptyString(authors)
+    authors = filterEmptyString(authors)
+    return authors
 }
 
 /**
@@ -175,7 +176,7 @@ const createArticleListObject = (titles, images, author, description, links, sou
  * @param {string} source 
  * @param {[{}]} dataObj 
  */
-const createArticleObject = ( article_content,article_author , title, article_images, source, dataObj) => {
+const createArticleObject = ( article_content, article_author , title, article_images, source, dataObj) => {
     dataObj.push({
         content: article_content ? article_content : "nothing to show",
          title: title ? title : "mystery article",

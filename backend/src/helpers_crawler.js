@@ -5,18 +5,18 @@ const {
     fixBrokenJOIN, 
     createArticleListObject,
     fixMultiAuthor, 
-    filterEmptyString,
     createArticleObject,
     formatArticleTextContent,
 } = require('./helpers')
 
-const formatGlamour = (articleTitles, images, author, description, articleLink, dataObjects, source) => {
-    console.log(articleTitles)
-    articleTitles = fixBrokenJOIN(articleTitles)
-    // fixBrokenJOIN(description)
-    fixMultiAuthor(author)
-    filterEmptyString(author)
-    createArticleListObject(articleTitles, images, author, description, articleLink, source, dataObjects)
+const formatArticlesList = (titles, images, author, descriptions, articleURLs, dataObjects, source) => {
+    titles = fixBrokenJOIN(titles)
+    descriptions = fixBrokenJOIN(descriptions)
+    author = fixMultiAuthor(author)
+    createArticleListObject(titles, images, author, descriptions, articleURLs, source, dataObjects)
+    console.log("1" + titles)
+    console.log("2" + descriptions)
+    console.log("3" + articleURLs )
     return dataObjects
 } 
 
@@ -31,47 +31,56 @@ const generateArticleList = async (
         let descriptions = []
         let articleURLs = []
         for(let i = 1; i <= numberPages; i++){  
-            const glamour_makeup_url = `${baseURL}?page=${i}`; 
-            let glamour_makeup = await fetchData(glamour_makeup_url);
-            if(!glamour_makeup.data){     
+            const blog_crawl_url = `${baseURL}?page=${i}`; 
+            let blog_crawl_res = await fetchData(blog_crawl_url);
+            if(!blog_crawl_res.data){     
                 console.log("Invalid data Obj");  
                 return; 
-            }
-            const glamour_makeup_html = glamour_makeup.data;
-            const $glamourMakeup = cheerio.load(glamour_makeup_html);
-            const glamour_makeup_articles = $glamourMakeup("section.SummaryRiverSection-knvNOm:nth-child(1) > div:nth-child(1)");
+            }      // section.SummaryRiverSection-knvNOm:nth-child(1) > div:nth-child(1)
+            const crawl_html = blog_crawl_res.data;
+            const $Q = cheerio.load(crawl_html);
+            const blog_articles = $Q("#main-content"); // should maybe paramterize this as target?
             
-            glamour_makeup_articles.each(function() {
+            blog_articles.each(function() {
                 // links to articles
-                articleURLs = $glamourMakeup(this).find('a').toString().split(/(?<=\href="\/article\/)(.*?)(?=\")/).filter(string => {
-                    if(string.match(/^((?![<>]).)*$/)) return true 
-                });
+                if(source == "Glamour"){         
+                    articleURLs = $Q(this).find('a').toString().split(/(?<=\href="\/article\/)(.*?)(?=\")/).filter(string => {
+                        if(string.match(/^((?![<>]).)*$/)) return true 
+                    });
+                }
+                if(source == "Allure"){
+                    articleURLs =  $Q(this).find('a').toString().split(/(?<=\href=")(.*?)(?=\")/).filter(string => {
+                        if(string.match(/^((?![<>]).)*$/)) return true 
+                    });
+                }
+
                 articleURLs = [...new Set(articleURLs)]; // removing duplicate entries
 
                 // author names
-                authors = $glamourMakeup(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+                authors = $Q(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
                     if(string != 'By ' && string != '' && string.match(/^((?![<>]).)*$/)) return true
                 });
                 
                 // images
-                images = $glamourMakeup(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+                images = $Q(this).find('.SummaryItemWrapper-gdEuvf').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                     if(string.match(/^(?=.*?\bhttps\b)(?=.*?\bphotos\b)(?=.*?\bjpg\b).*$/)) return true // 
                 }); 
 
                 // titles    
-                titles = $glamourMakeup(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+                titles = $Q(this).find('h3').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
                     if(string != '' && string.match(/^((?![<>]).)*$/)) return true
                 }); 
 
                 // short descriptions
-                descriptions = $glamourMakeup(this)
+                descriptions = $Q(this)
                     .find('.BaseWrap-sc-TURhJ').toString()
                     .split(/(?<=\>)(.*?)(?=\<)/)
                     .filter(e => {
                         if(e != '' && e != 'By ' && !authors.includes(e) && !e.match('<')) return true
                     })
-                  
-                    formatGlamour(
+                  //console.log(articleURLs)
+
+                    formatArticlesList(
                         titles, 
                         images, 
                         authors, 
@@ -82,15 +91,16 @@ const generateArticleList = async (
                     ); 
             });
         }
+        console.log(dataObjects)
         return dataObjects
 }
 
-const generateArticles = async (GlamourMakeupArticles, articles_list, source) => {
+const generateArticles = async (dataObjects, articles_list, source) => {
     // setup our web crawl variables
-    let Query
-    let GlamourArticle 
+    let $Q
+    let blog_article 
     let article_url
-    let Glamour_html
+    let article_html
     // object values
     let article_title
     let article_author
@@ -102,28 +112,28 @@ const generateArticles = async (GlamourMakeupArticles, articles_list, source) =>
                 // we use the link provided our trends list(dataObj)
                 article_url = articles_list[i].articleLink;
                 // make a get request to the article page
-                GlamourArticle = await fetchData(article_url);
+                blog_article = await fetchData(article_url);
                 // grab the page data from the response
-                Glamour_html = GlamourArticle.data;
+                article_html = blog_article.data;
                 // create our cheerio insatnce variable
-                Query = cheerio.load(Glamour_html); 
+                $Q = cheerio.load(article_html); 
                 // target the article class
-                GlamourArticle = Query('.article'); //console.log(GlamourArticle)
+                blog_article = $Q('.article'); //console.log(GlamourArticle)
                 // reuse the title property from the list. ensure accuracy and dont repeat work
                 article_title = articles_list[i].title;
                 // reuse the author property from the list. ensure accuracy and dont repeat work
                 article_author = articles_list[i].author;
         
-                GlamourArticle.each(function(){ 
+                blog_article.each(function(){ 
                     // grab article images
-                    img_urls =  Query(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
+                    img_urls =  $Q(this).find('img').toString().split(/(https[^\s]+\.jpg)/).filter(string => {
                         if(string.match(/(https[^\s]+\.jpg)/)) return true
                     });
                     // grab text content
-                    article_content =  Query(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
+                    article_content =  $Q(this).find('p').toString().split(/(?<=\>)(.*?)(?=\<)/).filter(string => {
                         if(string != '' && string.match(/^((?![<>]).)*$/)) return true;
                     })
-                    createArticleObject(article_content, article_author , article_title, img_urls, source, GlamourMakeupArticles)
+                    createArticleObject(article_content, article_author , article_title, img_urls, source, dataObjects)
                 }); 
             // console.log(GlamourMakeupArticles)     
             } catch (error) {
@@ -131,7 +141,7 @@ const generateArticles = async (GlamourMakeupArticles, articles_list, source) =>
             }
         }
  
-        return formatArticleTextContent(GlamourMakeupArticles)
+        return formatArticleTextContent(dataObjects)
     
 }
 
