@@ -14,9 +14,9 @@ const formatArticlesList = (titles, images, author, descriptions, articleURLs, d
     descriptions = fixBrokenJOIN(descriptions)
     author = fixMultiAuthor(author)
     createArticleListObject(titles, images, author, descriptions, articleURLs, source, dataObjects)
-    console.log("1" + titles)
-    console.log("2" + descriptions)
-    console.log("3" + articleURLs )
+    // console.log("1----" + titles)
+    //console.log("2" + descriptions)
+    //console.log("3" + articleURLs )
     return dataObjects
 } 
 
@@ -78,7 +78,7 @@ const generateArticleList = async (
                     .filter(e => {
                         if(e != '' && e != 'By ' && !authors.includes(e) && !e.match('<')) return true
                     })
-                  //console.log(articleURLs)
+                  console.log(authors)
 
                     formatArticlesList(
                         titles, 
@@ -91,7 +91,7 @@ const generateArticleList = async (
                     ); 
             });
         }
-        console.log(dataObjects)
+        //console.log(dataObjects)
         return dataObjects
 }
 

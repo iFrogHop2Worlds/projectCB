@@ -120,14 +120,54 @@ const formatArticleTextContent = (dataObj) => {
 
 const fixMultiAuthor = (authors) => {
     for(let i = 0; i < authors.length; i++) {
-        if(authors[i+1] == ' and '){
+        //console.log(authors[i]) 
+        //  going to take the naive approach for now and just assume there will be at most 3 authors 
+        if( authors[i] == ''){
+            i++
+            return
+        } 
+        if(
+            authors[i].startsWith("Discover") || authors[i].startsWith("Sign") || authors[i].startsWith("View") ||
+            authors[i].startsWith("Navigating") || authors[i].startsWith("Milky") || authors[i].startsWith("Acid") ||
+            authors[i].startsWith("Pink") || authors[i].startsWith("Kora") || authors[i].startsWith("True") ||
+            authors[i].startsWith("CLEAR") || authors[i].startsWith("Holi") || authors[i].startsWith("Agent") ||
+            authors[i].startsWith("Herbivore") || authors[i].startsWith("Philosophy") || authors[i].startsWith("Florence") ||
+            authors[i].startsWith("CALM") || authors[i].startsWith("Bamboo") || authors[i].startsWith("Function") ||
+            authors[i].startsWith("Bliss") || authors[i].startsWith("Trinny") || authors[i].startsWith("BareMinerals") ||
+            authors[i].startsWith("Patchology") || authors[i].startsWith("Melē") || authors[i].startsWith("Complete") ||
+            authors[i].startsWith("RENEW") || authors[i].startsWith("Navigating") || authors[i].startsWith("Discover") ||
+            authors[i].startsWith("$") || authors[i].startsWith("All") || authors[i].match(/[0-9]/) ||  
+            authors[i].endsWith("Beauty")             
+        ){
+            authors[i] = '';
+        }
+        // check extremes first
+        if(
+            authors[i+1] == ' and ' && authors[i+1].length > 32 || authors[i+1] == ", " && authors[i+1].length > 32 || authors[i+1] == ", and " && authors[i+1].length > 32 &&
+            
+            authors[i+3] == ' and '|| authors[i+3] == ", and "
+        ){
+            authors[i] += authors[i+1] + authors[i+2]  + authors[i+3]  + authors[i+4]
+            authors[i+1] = ''; 
+            authors[i+2] = '';
+            authors[i+3] = ''; 
+            authors[i+4] = ''; // flagging index for removal
+            i+=4
+        } 
+        // catches most
+        if(
+            authors[i+1] == ' and ' || authors[i+1] == ", " || authors[i+1] == ", and "
+        ){
             authors[i] += authors[i+1] + authors[i+2]
             authors[i+1] = ''; 
             authors[i+2] = ''; // flagging index for removal
             i+=2
-        }  
+        } 
+
     }
+    
     authors = filterEmptyString(authors)
+    console.log(authors)
     return authors
 }
 

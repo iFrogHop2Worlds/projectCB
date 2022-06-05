@@ -38,7 +38,7 @@ const allureSkinNumPages = 10
 await generateArticleList(
     allureSkinData, 
     allureSkinBaseURL, 
-    allureSkinNumPages,
+    allureSkinNumPages, 
     source
     )
     // .then(async () => {
@@ -48,7 +48,7 @@ await generateArticleList(
     //         source
     //     )
     // }).catch(e => console.log(e))  
-    console.log(allureSkinData) 
+    //console.log(allureSkinData) 
 // Make
 
 // Hair
