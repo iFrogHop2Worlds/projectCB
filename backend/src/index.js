@@ -1,12 +1,12 @@
 const app = require("./server");
 const { MongoClient } = require("mongodb");
-const BeautyDAO = require("./dao/AllureTrendsDAO");
+const BeautyDAO = require("./dao/AllureDAO");
 const GlamourDAO = require("./dao/GlamourDAO");
 const port = process.env.PORT || 8181;
 import { scheduler } from 'timers/promises';
 // let GlamourCrawler = require("./services/glamour_crawler/m");
 // let AllureCrawler = require('./services/allure_crawler/m')
-
+ 
 MongoClient.connect(
         process.env.MDECK_DB_URI,
         {

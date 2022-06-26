@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
-const beautyData = require("./api/beautyData.route");
+const allureData = require("./api/allureData.route");
 const glamourData = require("./api/glamourData.route")
 
 
@@ -14,7 +14,7 @@ app.use(bodyParser.json({limit: '150mb'}));
 app.use(bodyParser.urlencoded({limit: '150mb', extended: true}));
 
 // register API routes
-app.use("/Allure", beautyData)
+app.use("/Allure", allureData)
 app.use("/Glamour", glamourData)
 // app.use("/post", beautyData)
 // app.use("/status", express.static("build"))

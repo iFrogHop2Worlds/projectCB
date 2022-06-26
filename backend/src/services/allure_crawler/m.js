@@ -34,20 +34,20 @@ const AllureCrawler = async () => {
 
 // Skin
 const allureSkinBaseURL = "https://www.allure.com/skin-care"
-const allureSkinNumPages = 10
+const allureSkinNumPages = 7
 await generateArticleList(
     allureSkinData, 
     allureSkinBaseURL, 
     allureSkinNumPages, 
     source
     )
-    // .then(async () => {
-    //     await generateArticles(
-    //         allureSkinArticles,
-    //         allureSkinData, //we will loop over and grab links
-    //         source
-    //     )
-    // }).catch(e => console.log(e))  
+    .then(async () => {
+        await generateArticles(
+            allureSkinArticles,
+            allureSkinData, //we will loop over and grab links
+            source
+        )
+    }).catch(e => console.log(e))  
     //console.log(allureSkinData) 
 // Make
 

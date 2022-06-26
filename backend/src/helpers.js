@@ -1,3 +1,5 @@
+const { data } = require('cheerio/lib/api/attributes');
+
 const axios = require('axios').default;
 
 const filterEmptyString = (array) => {
@@ -34,15 +36,9 @@ const fixBrokenJOIN = (text) => {
    for(let i = 0; i < text.length-1; i++){
         // cases where i += i+1
         if(
-            
-            text[i].endsWith(' ') || 
-            text[i].endsWith("‘") ||
-            text[i].endsWith(':') ||
-            text[i+1].startsWith(' ') ||
-            text[i+1].startsWith(':') ||
-            text[i+1].startsWith(',') ||
-            text[i].endsWith("’s") ||
-            text[i+1].startsWith("’s") || text[i+1].startsWith("’S") ||
+            text[i].endsWith(' ') || text[i].endsWith("‘") || text[i].endsWith(':') ||
+            text[i+1].startsWith(' ') || text[i+1].startsWith(':') || text[i+1].startsWith(',') ||
+            text[i].endsWith("’s") || text[i+1].startsWith("’s") || text[i+1].startsWith("’S") ||
             text[i+1].startsWith("'s") || text[i+1].startsWith("'S")
         ){
             if(text[i] == ''){
@@ -55,29 +51,23 @@ const fixBrokenJOIN = (text) => {
 
         } 
         // cases where i-1 += i
-        if(
-            
-            text[i].startsWith(':') ||
-            text[i].startsWith("’:") ||
-            text[i].startsWith(")") ||
-            text[i].startsWith(' ') ||
-            text[i].startsWith("’s") || text[i].startsWith("’S") ||
-            text[i].startsWith("'s") || text[i].startsWith("'S") ||
-            text[i].startsWith(",") 
-            // text[i].startsWith(".")
-           
+        if(   
+            text[i].startsWith(':') || text[i].startsWith("’:") || text[i].startsWith(")") ||
+            text[i].startsWith(' ') || text[i].startsWith("’s") || text[i].startsWith("’S") ||
+            text[i].startsWith("'s") || text[i].startsWith("'S") || text[i].startsWith(",") ||
+            text[i].startsWith("And")
         ){
+            if(text[i-3] == ''){
+                text[i-4] += text[i]
+                text[i] = ''
+            } 
+            if(text[i-2] == ''){
+                text[i-3] += text[i]
+                text[i] = ''
+            }
             if(text[i-1] == ''){
                 text[i-2] += text[i]
                 text[i] = ''
-            // if(text[i-2] == ''){
-            //     text[i-3] += text[i]
-            //     text[i] = ''
-            // }
-            // if(text[i-3] == ''){
-            //     text[i-4] += text[i]
-            //     text[i] = ''
-            // } 
             } else {
                 text[i-1] += text[i]
                 text[i] = ''
@@ -85,16 +75,33 @@ const fixBrokenJOIN = (text) => {
 
         }
         // extreme cases where we need to append across multiple empty elements
+        if(text[i-2 != undefined])
         if(text[i-1] == '' && text[i-2].endsWith(' ')){
             text[i-2] += text[i]
             text[i] = ''
         }
+        if(text[i-3 != undefined])
         if(text[i-1] == '' && text[i-2] == '' && text[i-3].endsWith(' ')){
             text[i-3] += text[i]
             text[i] = ''
         }
-        if(text[i-2] == '' && text[i-3] == '' && text[i].startsWith("’s")){
+        if(text[i-3 != undefined])
+        if(text[i-2] == '' && text[i-3] == '' && text[i].startsWith("’s")){ 
             text[i-4] += text[i]
+            text[i] = ''
+        }
+        // cases where we simply want to null values
+        if(
+            text[i+1] == 'Newsletter Sign up' || text[i+1] == "😱😱😱" || text[i+1].endsWith("slides")
+        ){
+            text[i+1] = '' 
+        }
+        if(
+            text[i] == "Skin Care" || text[i] == "More in Skin Care" || text[i].endsWith("slides") ||
+            text[i].endsWith("2022") && text[i].length > 5 || text[i].endsWith("2023") && text[i].length > 5 || text[i].endsWith("2024") && text[i].length > 5 ||
+            text[i] == "Editors' Picks" || text[i] == "Explore by Topic" || text[i] == "." ||
+            text[i] == "Latest News" || text[i] == "Shop"
+        ){
             text[i] = ''
         }
         //console.log(text[i])
@@ -109,12 +116,15 @@ const formatArticleTextContent = (dataObj) => {
     if(dataObj)
     dataObj.forEach(e => {
         for(let i = 2; i < e.content.length; i++){
+            if(e.content[i].startsWith("All") && e.content[i].endsWith("commission.")) e.content[i] = ''
+
             e.content[2] += e.content[i];
         }
             //e.content = e.content[0].split(`${e.author}`)  // remove the authors name from begining string
             e.content = e.content[2] ? e.content[2] : e.content[0]; // if author was split return 2nd element otherwise first 
         // I
     });
+    console.log(dataObj)
     return dataObj
 }
 
@@ -167,7 +177,7 @@ const fixMultiAuthor = (authors) => {
     }
     
     authors = filterEmptyString(authors)
-    console.log(authors)
+    //console.log(authors)
     return authors
 }
 

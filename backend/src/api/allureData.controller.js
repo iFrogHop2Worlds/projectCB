@@ -1,11 +1,11 @@
-const BeautyDAO = require("../dao/AllureTrendsDAO");
+const AllureDAO = require("../dao/AllureDAO");
 
-class BeautyController {
+class AllureController {
 
     static async apiGetAllAllureTrends(req, res, next) {
         let result
         try {
-            result = await BeautyDAO.getAllAllureTrends()
+            result = await AllureDAO.getAllAllureTrends()
             res.json(result)
         } catch (err) {
             res.status(500).json({error: err});
@@ -15,7 +15,7 @@ class BeautyController {
     static async apiGetAllAllureArticles(req, res, next) {
         let result
         try {
-            result = await BeautyDAO.getAllAllureArticles()
+            result = await AllureDAO.getAllAllureArticles()
             res.json(result)
         } catch (err) {
             res.status(500).json({error: err});
@@ -26,7 +26,7 @@ class BeautyController {
         let result 
         req ? result=req : console.log("Data did not persist properly")
         try {
-            await BeautyDAO.insertAllureTrends(result); 
+            await AllureDAO.insertAllureTrends(result); 
         } catch (err) {
             console.log(err);
         }
@@ -36,7 +36,7 @@ class BeautyController {
         let result 
         req ? result=req : console.log("Data did not persist properly")
         try { 
-            await BeautyDAO.insertAllureTrendsArticles(result); 
+            await AllureDAO.insertAllureTrendsArticles(result); 
         } catch (err) {
             console.log(err);
         }
@@ -44,7 +44,7 @@ class BeautyController {
  
     static async apiUpdateAllProduct(req, res, next) {
         try {
-            await BeautyDAO.updateAllBeauty(req)
+            await AllureDAO.updateAllAllure(req)
         } catch (err) {
             res.status(500).json({error:err})
         }
@@ -59,4 +59,4 @@ class BeautyController {
     }
 
 }
-module.exports = BeautyController
+module.exports = AllureController
